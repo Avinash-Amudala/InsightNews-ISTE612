@@ -2,3 +2,6 @@ requests
 pandas
 matplotlib
 seaborn
+
+transformers 
+datasets
