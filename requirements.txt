@@ -1,4 +1,7 @@
-requests
 pandas
+newsapi-python
+python-dotenv
 matplotlib
 seaborn
+wordcloud
+nltk
