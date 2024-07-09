@@ -207,6 +207,7 @@ To gain insights into the common terms used across different topics, we performe
 ### Word Clouds
 
 Word clouds provide a visual representation of the most frequently occurring terms, with the size of each term indicating its frequency. The word clouds for each topic are shown below:
+
 #### Technology
 ![Word Cloud - Technology](figures/wordcloud_technology.png)
 
@@ -219,6 +220,28 @@ Word clouds provide a visual representation of the most frequently occurring ter
 #### Sports
 ![Word Cloud - Sports](figures/wordcloud_sports.png)
 
+## Bigrams and Trigrams Analysis
+
+### Most Frequently Occurring Bigrams and Trigrams
+
+To capture frequently occurring phrases, we performed an analysis of bigrams and trigrams. The top 20 bigrams and trigrams for each topic are presented below:
+
+#### Technology
+![Top Bigrams - Technology](figures/top_2grams_technology.png)
+![Top Trigrams - Technology](figures/top_3grams_technology.png)
+
+#### Politics
+![Top Bigrams - Politics](figures/top_2grams_politics.png)
+![Top Trigrams - Politics](figures/top_3grams_politics.png)
+
+#### Health
+![Top Bigrams - Health](figures/top_2grams_health.png)
+![Top Trigrams - Health](figures/top_3grams_health.png)
+
+#### Sports
+![Top Bigrams - Sports](figures/top_2grams_sports.png)
+![Top Trigrams - Sports](figures/top_3grams_sports.png)
+
 ## Conclusion
 
-Through the data collection and preprocessing steps, we have ensured that the data is clean and ready for the next phases of our project. The visualizations and summary statistics provided above demonstrate that we have a solid grasp on manipulating and understanding our dataset. This sets a strong foundation for implementing the sentiment analysis and developing the interactive dashboard in the subsequent stages of the project.
+Through the data collection and preprocessing steps, we have ensured that the data is clean and ready for the next phases of our project. The visualizations and summary statistics provided above demonstrate that we have a solid grasp on manipulating and understanding our dataset. The term frequency, word cloud, and n-grams analyses offer insights into the most common terms and phrases across different topics, which can help in developing the sentiment analysis model. This sets a strong foundation for implementing the sentiment analysis and developing the interactive dashboard in the subsequent stages of the project.
