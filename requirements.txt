@@ -1,7 +1,5 @@
-requests
 pandas
+newsapi-python
+python-dotenv
 matplotlib
 seaborn
-
-transformers 
-datasets

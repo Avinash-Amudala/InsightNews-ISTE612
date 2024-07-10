@@ -1,5 +1,8 @@
 import pandas as pd
 import os
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import string
 
 def load_data(directory):
     files = [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('.csv')]
@@ -11,17 +14,43 @@ def preprocess_data(df):
     if df.empty:
         print("No data to preprocess.")
         return df
+
     initial_count = len(df)
+    print(f"Initial record count: {initial_count}")
+
     df.drop_duplicates(subset='url', keep='first', inplace=True)
-    df.dropna(subset=['content'], inplace=True)
-    df['content_length'] = df['content'].apply(lambda x: len(x.split()) if isinstance(x, str) else 0)
+    after_dedup_count = len(df)
+    print(f"Records after removing duplicates: {after_dedup_count} (Removed {initial_count - after_dedup_count})")
+
+    df = df.dropna(subset=['title', 'content'], how='all')
+    after_dropna_count = len(df)
+    print(f"Records after removing rows with missing title and content: {after_dropna_count} (Removed {after_dedup_count - after_dropna_count})")
+
+    df['content'] = df['content'].fillna(df['title'])
+    df['title'] = df['title'].fillna(df['content'])
+
+    stop_words = set(stopwords.words('english'))
+
+    def clean_content(content):
+        tokens = word_tokenize(content.lower())
+        tokens = [word for word in tokens if word.isalpha() and word not in stop_words]
+        return ' '.join(tokens)
+
+    df['cleaned_content'] = df['content'].apply(clean_content)
+    df['content_length'] = df['cleaned_content'].apply(lambda x: len(x.split()))
+
+    df = df[df['content_length'] > 3]
+    after_cleaning_count = len(df)
+    print(f"Records after cleaning content: {after_cleaning_count} (Removed {after_dropna_count - after_cleaning_count})")
+
     final_count = len(df)
     print(f"Preprocessed data from {initial_count} to {final_count} records.")
+
     return df
 
 def save_data(df, filename):
     if df.empty:
-        print(f"No data to save for {filename}")  # Debug: no data case
+        print(f"No data to save for {filename}")
         return
     abs_path = os.path.abspath(filename)
     os.makedirs(os.path.dirname(abs_path), exist_ok=True)
