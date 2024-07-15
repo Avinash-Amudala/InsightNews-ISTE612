@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request
 import pandas as pd
-from sentiment_analysis import analyze_sentiment, setup_sentiment_analyzer
+from sentiment_analysis import analyze_sentiment, setup_sentiment_analyzer, setup_summarizer, summarize_content
 
 app = Flask(__name__)
 
@@ -29,12 +29,14 @@ def analyze():
     df = clean_dataframe(df)
 
     sentiment_analyzer = setup_sentiment_analyzer()
+    summarizer = setup_summarizer()
 
     df = analyze_sentiment(df, sentiment_analyzer)
+    df = summarize_content(df, summarizer)
 
     df = clean_dataframe(df)
 
-    df = df[['author', 'title', 'description', 'url', 'source', 'image', 'published_at', 'topic', 'sentiment']]
+    df = df[['author', 'title', 'description', 'url', 'source', 'image', 'published_at', 'topic', 'sentiment', 'summary']]
 
     df['image'] = df.apply(lambda row: row['image'] if pd.notna(row['image']) else DEFAULT_IMAGES.get(row['topic'], 'static/images/default.jpg'), axis=1)
 
