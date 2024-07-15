@@ -5,7 +5,7 @@ def setup_summarizer():
     return pipeline('summarization')
 
 def summarize_content(df, summarizer):
-    df['summary'] = df['cleaned_content'].apply(lambda x: summarizer(x, max_length=50, min_length=25, do_sample=False)[0]['summary_text'])
+    df['summary'] = df['cleaned_content'].apply(lambda x: summarizer(x, max_length=50, min_length=25, do_sample=False)[0]['summary_text'] if len(x.split()) > 25 else x)
     return df
 
 def load_cleaned_data(file_path):
@@ -15,14 +15,13 @@ def setup_sentiment_analyzer():
     return pipeline('sentiment-analysis')
 
 def analyze_sentiment(df, analyzer):
-    df = df.head(10)  # Limit to 10 rows for the demo
     sentiments = df['cleaned_content'].apply(lambda x: analyzer(x)[0]['label'])
-    df['sentiment'] = sentiments
+    df.loc[:, 'sentiment'] = sentiments
     return df
 
 if __name__ == "__main__":
     input_file = 'data/processed/articles_cleaned.csv'
-    output_file = 'data/processed/articles_with_sentiment_and_summary.csv'
+    output_file = 'data/processed/articles_with_sentiment.csv'
 
     print("Loading cleaned data...")
     df = load_cleaned_data(input_file)
