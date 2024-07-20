@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>InsightNews Sentiment Analysis</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+  <h1 class="my-4">InsightNews Sentiment Analysis</h1>
+  <form action="/analyze" method="post">
+    <div class="form-group">
+      <label for="search">Search (Topic, Author, Title, Source):</label>
+      <input type="text" class="form-control" id="search" name="search" required>
+    </div>
+    <div class="form-group">
+      <label for="from_date">From Date:</label>
+      <input type="date" class="form-control" id="from_date" name="from_date" required>
+    </div>
+    <div class="form-group">
+      <label for="to_date">To Date:</label>
+      <input type="date" class="form-control" id="to_date" name="to_date" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Analyze</button>
+  </form>
+</div>
+</body>
+</html>
