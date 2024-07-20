@@ -1,75 +1,63 @@
-# InsightNews: Personalized News Sentiment Analyzer
+# Checkpoint 2: Data Exploration
 
-## Project Setup
+## InsightNews: Personalized News Sentiment Analyzer
 
-1. **Clone the repository**:
-    ```sh
-    git clone 
-    cd InsightNews-ISTE612
-    ```
+**Team Members:** Avinash Amudala, Venkata Ajay Kumar Vutty, Shreya Navinchandra Patel
 
-2. **Set up the virtual environment**:
-    ```sh
-    python -m venv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-    ```
+## Introduction
 
-3. **Install the dependencies**:
-    ```sh
-    pip install -r requirements.txt
-    ```
+This document provides a detailed exploration of the data collected for the InsightNews project. The objective of Checkpoint 2 is to demonstrate that we have collected a significant portion of the data needed for our project, describe the preprocessing steps taken, and highlight key characteristics of the data through various analyses and visualizations.
 
-4. **Set up environment variables**:
-   Create a `.env` file in the root directory with your API keys.
-    ```env
-    NEWS_API_KEY=
-    MEDIASTACK_API_KEY=
-    ```
+## Data Collection
 
-## Running the Flask Application
+### Source of Data
+We collected news articles using the NewsAPI and MediaStack, which provide access to articles from various online sources. Our focus was on four topics: technology, politics, health, and sports.
 
-1. **Navigate to the `src` directory**:
-    ```sh
-    cd src
-    ```
+### Topics Covered
+- Technology
+- Politics
+- Health
+- Sports
 
-2. **Run the application**:
-    ```sh
-    python app.py
-    ```
+### Data Collection Process
+We used the NewsAPI and MediaStack to fetch articles for each topic within a specified date range. The data collection process involved querying the API for each topic and saving the articles in CSV files.
 
-3. **Open your browser and go to**:
-    ```
-    http://127.0.0.1:5000
-    ```
+### Limitations
+The APIs' free plans limit the number of articles that can be fetched. To manage this limitation, we collected articles in batches for each topic. Additionally, our current dataset spans from June 1, 2024, to June 30, 2024.
 
-## Running Sentiment Analysis
+While this provides a good starting point, it is important to note that this limitation may affect the comprehensiveness of our sentiment analysis and trends. We can expand our dataset if needed by upgrading our API plans or integrating additional data sources to capture more articles and cover a broader date range.
 
-1. **Navigate to the `src` directory**:
-    ```sh
-    cd src
-    ```
+## Data Preprocessing
 
-2. **Run the sentiment analysis script**:
-    ```sh
-    python sentiment_analysis.py
-    ```
+### Steps Involved
+1. **Loading Data**: We loaded the raw data from CSV files into a DataFrame.
+2. **Removing Duplicates**: Duplicate articles based on the URL were removed.
+3. **Handling Missing Content and Titles**: Articles with missing content and titles were addressed by either filling missing content with titles or dropping rows.
+4. **Cleaning Content**: Tokenization and removal of stop words were performed.
+5. **Calculating Content Length**: The length of the content for each article was calculated in terms of the number of words.
 
-## Running Tests
+### Code for Data Preprocessing
+```python
+import pandas as pd
+import os
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import string
 
-1. **Navigate to the `src` directory**:
-    ```sh
-    cd src
-    ```
+def load_data(directory):
+    files = [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('.csv')]
+    print(f"Found {len(files)} files to process.")
+    dfs = [pd.read_csv(f) for f in files]
+    return pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
 
-2. **Run the test scripts**:
-    ```sh
-    python -m unittest test_scripts.py
-    ```
+def preprocess_data(df):
+    if df.empty:
+        print("No data to preprocess.")
+        return df
 
-## Dependencies
+    initial_count = len(df)
+    print(f"Initial record count: {initial_count}")
 
-<<<<<<< HEAD
     # Remove duplicates based on URL
     df.drop_duplicates(subset='url', keep='first', inplace=True)
     after_dedup_count = len(df)
@@ -257,10 +245,3 @@ To capture frequently occurring phrases, we performed an analysis of bigrams and
 ## Conclusion
 
 Through the data collection and preprocessing steps, we have ensured that the data is clean and ready for the next phases of our project. The visualizations and summary statistics provided above demonstrate that we have a solid grasp on manipulating and understanding our dataset. The term frequency, word cloud, and n-grams analyses offer insights into the most common terms and phrases across different topics, which can help in developing the sentiment analysis model. This sets a strong foundation for implementing the sentiment analysis and developing the interactive dashboard in the subsequent stages of the project.
-=======
-- Python 3.9+
-- Flask
-- pandas
-- transformers
-- unittest
->>>>>>> origin/main
