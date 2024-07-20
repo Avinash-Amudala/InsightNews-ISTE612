@@ -137,7 +137,7 @@ The table below provides summary statistics for the dataset, including the numbe
 #### Distribution of Article Lengths
 The histogram below visualizes the distribution of article lengths, showing the number of words in each article.
 
-![Article Length Distribution](figures/article_length_distribution.png)
+![Article Length Distribution](../figures/article_length_distribution.png)
 
 #### Explanation:
 This histogram illustrates the frequency of articles based on their length, defined by the number of words they contain. From the distribution, we observe that the majority of articles fall within the 7 to 12-word range. There are very few articles with less than 4 words or more than 30 words. The distribution shows a peak around 9 words, indicating that most articles in our dataset are concise, likely consisting of brief news summaries or highlights.
@@ -147,7 +147,7 @@ This visualization is essential as it helps us understand the typical length of 
 #### Number of Articles per Topic
 The bar chart below shows the number of articles collected for each topic.
 
-![Articles per Topic](figures/articles_per_topic.png)
+![Articles per Topic](../figures/articles_per_topic.png)
 
 #### Explanation:
 This bar chart illustrates the distribution of articles across the four topics: technology, politics, health, and sports. Each bar represents the number of articles collected for a specific topic.
@@ -160,7 +160,7 @@ From the visualization, we observe that:
 #### Content Length Distribution by Topic
 The box plot below shows the distribution of content lengths across different topics.
 
-![Content Length Distribution by Topic](figures/content_length_distribution_by_topic.png)
+![Content Length Distribution by Topic](../figures/content_length_distribution_by_topic.png)
 
 #### Explanation:
 This box plot visualizes the distribution of content lengths (number of words) for articles in each of the four topics: technology, health, politics, and sports.
@@ -174,7 +174,7 @@ This box plot visualizes the distribution of content lengths (number of words) f
 #### Top Sources for Each Topic
 The bar chart below shows the top sources for each topic.
 
-![Top Sources for Each Topic](figures/top_sources_per_topic.png)
+![Top Sources for Each Topic](../figures/top_sources_per_topic.png)
 
 #### Explanation:
 This bar chart presents the most prolific sources for each topic in our dataset. The sources are listed on the y-axis, and the number of articles provided by each source is shown on the x-axis. Different colors represent different topics.
@@ -193,32 +193,32 @@ This bar chart presents the most prolific sources for each topic in our dataset.
 To gain insights into the common terms used across different topics, we performed a term frequency analysis. The top 20 most frequently occurring terms for each topic are presented below:
 
 #### Technology
-![Top 20 Terms - Technology](figures/top_terms_technology.png)
+![Top 20 Terms - Technology](../figures/top_terms_technology.png)
 
 #### Politics
-![Top 20 Terms - Politics](figures/top_terms_politics.png)
+![Top 20 Terms - Politics](../figures/top_terms_politics.png)
 
 #### Health
-![Top 20 Terms - Health](figures/top_terms_health.png)
+![Top 20 Terms - Health](../figures/top_terms_health.png)
 
 #### Sports
-![Top 20 Terms - Sports](figures/top_terms_sports.png)
+![Top 20 Terms - Sports](../figures/top_terms_sports.png)
 
 ### Word Clouds
 
 Word clouds provide a visual representation of the most frequently occurring terms, with the size of each term indicating its frequency. The word clouds for each topic are shown below:
 
 #### Technology
-![Word Cloud - Technology](figures/wordcloud_technology.png)
+![Word Cloud - Technology](../figures/wordcloud_technology.png)
 
 #### Politics
-![Word Cloud - Politics](figures/wordcloud_politics.png)
+![Word Cloud - Politics](../figures/wordcloud_politics.png)
 
 #### Health
-![Word Cloud - Health](figures/wordcloud_health.png)
+![Word Cloud - Health](../figures/wordcloud_health.png)
 
 #### Sports
-![Word Cloud - Sports](figures/wordcloud_sports.png)
+![Word Cloud - Sports](../figures/wordcloud_sports.png)
 
 ## Bigrams and Trigrams Analysis
 
@@ -227,20 +227,20 @@ Word clouds provide a visual representation of the most frequently occurring ter
 To capture frequently occurring phrases, we performed an analysis of bigrams and trigrams. The top 20 bigrams and trigrams for each topic are presented below:
 
 #### Technology
-![Top Bigrams - Technology](figures/top_2grams_technology.png)
-![Top Trigrams - Technology](figures/top_3grams_technology.png)
+![Top Bigrams - Technology](../figures/top_2grams_technology.png)
+![Top Trigrams - Technology](../figures/top_3grams_technology.png)
 
 #### Politics
-![Top Bigrams - Politics](figures/top_2grams_politics.png)
-![Top Trigrams - Politics](figures/top_3grams_politics.png)
+![Top Bigrams - Politics](../figures/top_2grams_politics.png)
+![Top Trigrams - Politics](../figures/top_3grams_politics.png)
 
 #### Health
-![Top Bigrams - Health](figures/top_2grams_health.png)
-![Top Trigrams - Health](figures/top_3grams_health.png)
+![Top Bigrams - Health](../figures/top_2grams_health.png)
+![Top Trigrams - Health](../figures/top_3grams_health.png)
 
 #### Sports
-![Top Bigrams - Sports](figures/top_2grams_sports.png)
-![Top Trigrams - Sports](figures/top_3grams_sports.png)
+![Top Bigrams - Sports](../figures/top_2grams_sports.png)
+![Top Trigrams - Sports](../figures/top_3grams_sports.png)
 
 ## Conclusion
 
