@@ -14,26 +14,33 @@ DEFAULT_IMAGES = {
 }
 
 def clean_dataframe(df):
+    pd.set_option('future.no_silent_downcasting', True)
     df = df.replace(r'\\n', ' ', regex=True)
     df = df.infer_objects(copy=False)
     df = df.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
     return df
 
 def load_filtered_data(file_path, search=None, from_date=None, to_date=None):
-    df = pd.read_csv(file_path, parse_dates=['published_at'], infer_datetime_format=True)
-    
+    # Load the dataset with datetime parsing
+    df = pd.read_csv(file_path, parse_dates=['published_at'])
+    print(f"Loaded {len(df)} records from {file_path}")
+
+    # Filter based on search term
     if search:
         search = search.lower()
         df = df[
-            df['topic'].str.lower().str.contains(search) |
+            df['topic'].str.lower().str.contains(search, na=False) |
             df['author'].str.lower().str.contains(search, na=False) |
             df['title'].str.lower().str.contains(search, na=False) |
             df['source'].str.lower().str.contains(search, na=False)
         ]
-    
+        print(f"Filtered by search '{search}': {len(df)} records remaining")
+
+    # Filter based on date range
     if from_date and to_date:
         df = df[(df['published_at'] >= from_date) & (df['published_at'] <= to_date)]
-    
+        print(f"Filtered by date range {from_date} to {to_date}: {len(df)} records remaining")
+
     return df
 
 @app.route('/')
@@ -46,6 +53,8 @@ def analyze():
     search = request.form.get('search')
     from_date = request.form.get('from_date')
     to_date = request.form.get('to_date')
+
+    print(f"Search: {search}, From: {from_date}, To: {to_date}")
 
     data_file = '../data/processed/articles_with_sentiment.csv'
     df = load_filtered_data(data_file, search, from_date, to_date)
