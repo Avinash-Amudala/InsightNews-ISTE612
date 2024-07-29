@@ -1,29 +1,74 @@
+<!-- templates/index.html -->
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>InsightNews Sentiment Analysis</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>InsightNews Sentiment Analysis</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<div class="container">
-  <h1 class="my-4">InsightNews Sentiment Analysis</h1>
-  <form action="/analyze" method="post">
-    <div class="form-group">
-      <label for="search">Search (Topic, Author, Title, Source):</label>
-      <input type="text" class="form-control" id="search" name="search" required>
-    </div>
-    <div class="form-group">
-      <label for="from_date">From Date:</label>
-      <input type="date" class="form-control" id="from_date" name="from_date" required>
-    </div>
-    <div class="form-group">
-      <label for="to_date">To Date:</label>
-      <input type="date" class="form-control" id="to_date" name="to_date" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Analyze</button>
-  </form>
+<div class="container mt-5">
+    <h1 class="text-center">InsightNews Sentiment Analysis</h1>
+    <form method="POST" action="{{ url_for('index') }}" class="my-4">
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="query">Search (Topic, Author, Title, Source):</label>
+                <input type="text" class="form-control" id="query" name="query" placeholder="Search..." value="{{ query }}">
+            </div>
+            <div class="form-group col-md-2">
+                <label for="from_date">From Date:</label>
+                <input type="date" class="form-control" id="from_date" name="from_date" value="{{ from_date }}">
+            </div>
+            <div class="form-group col-md-2">
+                <label for="to_date">To Date:</label>
+                <input type="date" class="form-control" id="to_date" name="to_date" value="{{ to_date }}">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Analyze</button>
+    </form>
+    {% if articles %}
+        <ul class="list-unstyled">
+            {% for article in articles %}
+                <li class="media mb-4">
+                    <img src="{{ article.image }}" class="mr-3" alt="Image for {{ article.category }}" style="width: 150px;">
+                    <div class="media-body">
+                        <h5 class="mt-0 mb-1">{{ article.title }}</h5>
+                        <p><strong>Summary:</strong> {{ article.summary }}</p>
+                        <p>{{ article.content }}</p>
+                        <strong>Sentiment: {{ article.sentiment }}</strong><br>
+                        <a href="{{ article.url }}" target="_blank">Read more</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('index', page=pagination.page - 1, query=query, from_date=from_date, to_date=to_date) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                <li class="page-item disabled">
+                    <span class="page-link">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+                </li>
+                {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('index', page=pagination.page + 1, query=query, from_date=from_date, to_date=to_date) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% else %}
+        <p class="text-center">No articles to display. Please use the search form above to find articles.</p>
+    {% endif %}
 </div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -1,43 +1,17 @@
-import pandas as pd
 from transformers import pipeline
 
-def setup_summarizer():
-    return pipeline('summarization')
-
-def summarize_content(df, summarizer):
-    df['summary'] = df['cleaned_content'].apply(lambda x: summarizer(x, max_length=50, min_length=25, do_sample=False)[0]['summary_text'] if len(x.split()) > 25 else x)
-    return df
-
-def load_cleaned_data(file_path):
-    return pd.read_csv(file_path)
-
 def setup_sentiment_analyzer():
-    return pipeline('sentiment-analysis')
+    return pipeline('sentiment-analysis', model="distilbert/distilbert-base-uncased-finetuned-sst-2-english")
 
-def analyze_sentiment(df, analyzer):
-    sentiments = df['cleaned_content'].apply(lambda x: analyzer(x)[0]['label'])
-    df.loc[:, 'sentiment'] = sentiments
-    return df
+def analyze_sentiment(analyzer, text):
+    return analyzer(text)[0]['label']
 
-if __name__ == "__main__":
-    input_file = 'data/processed/articles_cleaned.csv'
-    output_file = 'data/processed/articles_with_sentiment.csv'
+def setup_summarizer():
+    return pipeline('summarization', model="sshleifer/distilbart-cnn-12-6")
 
-    print("Loading cleaned data...")
-    df = load_cleaned_data(input_file)
+def summarize_content(summarizer, text, max_length=130, min_length=30):
+    input_length = len(text.split())
+    max_len = min(max_length, input_length)
+    min_len = min(min_length, input_length // 2)
+    return summarizer(text, max_length=max_len, min_length=min_len, do_sample=False)[0]['summary_text']
 
-    print("Setting up sentiment analyzer...")
-    sentiment_analyzer = setup_sentiment_analyzer()
-
-    print("Analyzing sentiment...")
-    df = analyze_sentiment(df, sentiment_analyzer)
-
-    print("Setting up summarizer...")
-    summarizer = setup_summarizer()
-
-    print("Summarizing content...")
-    df = summarize_content(df, summarizer)
-
-    print("Saving results...")
-    df.to_csv(output_file, index=False)
-    print(f"Results saved to {output_file}")
