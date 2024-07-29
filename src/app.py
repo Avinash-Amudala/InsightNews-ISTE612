@@ -1,15 +1,16 @@
 import os
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
-from sentiment_analysis import analyze_sentiment, setup_sentiment_analyzer, setup_summarizer, summarize_content
 from flask_caching import Cache
 
 app = Flask(__name__)
 
+# Configuring cache
 cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 cache.init_app(app)
 
-data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'processed', 'articles_cleaned.csv'))
+# Use the preprocessed data with sentiment and summary
+data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'processed', 'articles_with_sentiment.csv'))
 print(f"Loading data from {data_path}")
 try:
     articles = pd.read_csv(data_path)
@@ -18,7 +19,7 @@ try:
     date_max = articles['published_at'].max().strftime('%Y-%m-%d')
 except FileNotFoundError as e:
     print(f"Error: {e}")
-    print("Ensure the data_preprocessing.py script has been run and the articles_cleaned.csv file exists.")
+    print("Ensure the articles_with_sentiment.csv file exists.")
     exit(1)
 
 DEFAULT_IMAGES = {
@@ -29,9 +30,6 @@ DEFAULT_IMAGES = {
 }
 
 FALLBACK_IMAGE = 'static/images/default.jpg'
-
-analyzer = setup_sentiment_analyzer()
-summarizer = setup_summarizer()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -59,7 +57,12 @@ def index():
         if query or from_date or to_date:
             filtered_articles = articles.copy()
             if query:
-                filtered_articles = filtered_articles[filtered_articles['content'].str.contains(query, case=False, na=False)]
+                filtered_articles = filtered_articles[
+                    filtered_articles['content'].str.contains(query, case=False, na=False) |
+                    filtered_articles['title'].str.contains(query, case=False, na=False) |
+                    filtered_articles['author'].str.contains(query, case=False, na=False) |
+                    filtered_articles['source'].str.contains(query, case=False, na=False)
+                    ]
             if from_date:
                 from_date = pd.to_datetime(from_date, errors='coerce')
                 if from_date.tzinfo is None:
@@ -70,16 +73,12 @@ def index():
                 if to_date.tzinfo is None:
                     to_date = to_date.tz_localize('UTC')
                 filtered_articles = filtered_articles[filtered_articles['published_at'] <= to_date]
-            elif from_date:
-                filtered_articles = filtered_articles[filtered_articles['published_at'] == from_date]
 
             total = len(filtered_articles)
             start = (page - 1) * per_page
             end = start + per_page
             current_articles = filtered_articles.iloc[start:end].copy()
 
-            current_articles['sentiment'] = current_articles['content'].apply(lambda x: analyze_sentiment(analyzer, x))
-            current_articles['summary'] = current_articles['content'].apply(lambda x: summarize_content(summarizer, x))
             current_articles['image'] = current_articles.apply(lambda row: row['image'] if pd.notna(row['image']) else DEFAULT_IMAGES.get(row['topic'].lower(), FALLBACK_IMAGE), axis=1)
 
             pagination = {
@@ -91,8 +90,6 @@ def index():
             }
         else:
             current_articles = articles.sort_values(by='published_at', ascending=False).head(per_page).copy()
-            current_articles['sentiment'] = current_articles['content'].apply(lambda x: analyze_sentiment(analyzer, x))
-            current_articles['summary'] = current_articles['content'].apply(lambda x: summarize_content(summarizer, x))
             current_articles['image'] = current_articles.apply(lambda row: row['image'] if pd.notna(row['image']) else DEFAULT_IMAGES.get(row['topic'].lower(), FALLBACK_IMAGE), axis=1)
 
             pagination = {

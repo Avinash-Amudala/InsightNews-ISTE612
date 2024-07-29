@@ -14,4 +14,3 @@ def summarize_content(summarizer, text, max_length=130, min_length=30):
     max_len = min(max_length, input_length)
     min_len = min(min_length, input_length // 2)
     return summarizer(text, max_length=max_len, min_length=min_len, do_sample=False)[0]['summary_text']
-
