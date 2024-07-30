@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from transformers import RobertaTokenizer, RobertaForSequenceClassification, T5Tokenizer, T5ForConditionalGeneration
 from concurrent.futures import ThreadPoolExecutor
@@ -64,6 +65,6 @@ def run_sentiment_analysis(input_file, output_file, batch_size=50):
     print(f"Results saved to {output_file}")
 
 if __name__ == "__main__":
-    input_file = '/content/articles_cleaned.csv'
-    output_file = '/content/articles_with_sentiment.csv'
+    input_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'processed', 'articles_cleaned.csv'))
+    output_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'processed', 'articles_with_sentiment.csv'))
     run_sentiment_analysis(input_file, output_file)
