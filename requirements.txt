@@ -9,6 +9,7 @@ dask==2024.7.0
 dask-expr==1.1.7
 filelock==3.15.4
 Flask==3.0.3
+Flask-Caching==1.11.1
 fonttools==4.53.0
 fsspec==2024.6.1
 huggingface-hub==0.23.4
