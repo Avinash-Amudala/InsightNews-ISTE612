@@ -17,7 +17,7 @@
         }
         .card {
             transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s, border 0.3s;
-            min-height: 500px; /* Adjust this height as necessary */
+            min-height: 500px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -52,7 +52,7 @@
             right: 20px;
             display: flex;
             align-items: center;
-            z-index: 1050; /* Above other elements */
+            z-index: 1050;
         }
         .theme-switch {
             display: flex;
@@ -136,7 +136,19 @@
     </form>
     <div id="articles-container">
         {% if articles %}
-        <h2 class="my-4">{{ query or from_date or to_date and 'Search Results' or 'Latest News' }}</h2>
+        <h2 class="my-4">
+            {% if query %}
+                Searched for "{{ query }}"
+            {% elif from_date and to_date %}
+                Searched from {{ from_date|dateformat }} to {{ to_date|dateformat }}
+            {% elif from_date %}
+                Searched from {{ from_date|dateformat }}
+            {% elif to_date %}
+                Searched up to {{ to_date|dateformat }}
+            {% else %}
+                Latest News
+            {% endif %}
+        </h2>
         <div class="row">
             {% for article in articles %}
             <div class="col-md-4 mb-4">

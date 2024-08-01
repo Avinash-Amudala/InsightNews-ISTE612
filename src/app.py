@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, jsonify
 import pandas as pd
 import re
 from flask_caching import Cache
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -110,6 +111,19 @@ def index():
     current_articles, pagination = cached_articles
 
     return render_template('index.html', articles=current_articles, pagination=pagination, query=query, from_date=from_date, to_date=to_date, date_min=date_min, date_max=date_max)
+
+@app.template_filter('dateformat')
+def dateformat(value, format='%B %d, %Y'):
+    """Format a date string or Timestamp into a more readable format."""
+    if isinstance(value, datetime):
+        date_obj = value
+    else:
+        try:
+            date_obj = datetime.strptime(value, '%Y-%m-%d')
+        except ValueError:
+            date_obj = value.to_pydatetime()
+
+    return date_obj.strftime(format)
 
 if __name__ == '__main__':
     app.run(debug=True)
