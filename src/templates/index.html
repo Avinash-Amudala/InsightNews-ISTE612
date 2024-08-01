@@ -5,39 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>InsightNews Sentiment Analysis</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        #loading-placeholder {
-            display: none;
-            text-align: center;
-            color: white;
-            font-size: 20px;
-            background-color: rgba(128, 128, 128, 0.5);
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            transition: opacity 0.5s;
+        body.light-theme {
+            background-color: #f8f9fa;
+            color: #212529;
         }
-        #articles-container {
-            position: relative;
-            min-height: 200px;
+        body.dark-theme {
+            background-color: #212529;
+            color: #f8f9fa;
         }
         .card {
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s, border 0.3s;
+            min-height: 500px; /* Adjust this height as necessary */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        .card.light-theme {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+        }
+        .card.dark-theme {
+            background-color: #343a40;
+            border: 1px solid #454d55;
         }
         .card img {
-            max-height: 150px;
+            height: 150px;
             object-fit: cover;
+        }
+        .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .card-title, .card-text {
+            flex-grow: 1;
+            margin-bottom: 10px;
+        }
+        .card .btn {
+            margin-top: auto;
+        }
+        .theme-switch-wrapper {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            z-index: 1050; /* Above other elements */
+        }
+        .theme-switch {
+            display: flex;
+            align-items: center;
+        }
+        .theme-switch input {
+            height: 0;
+            width: 0;
+            visibility: hidden;
+        }
+        .theme-switch label {
+            cursor: pointer;
+            text-indent: -9999px;
+            width: 52px;
+            height: 27px;
+            background: grey;
+            display: block;
+            border-radius: 100px;
+            position: relative;
+            margin: 0 10px;
+        }
+        .theme-switch label:after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 23px;
+            height: 23px;
+            background: #fff;
+            border-radius: 90px;
+            transition: 0.3s;
+        }
+        .theme-switch input:checked + label {
+            background: #007bff;
+        }
+        .theme-switch input:checked + label:after {
+            left: calc(100% - 2px);
+            transform: translateX(-100%);
+        }
+        .theme-switch label:active:after {
+            width: 30px;
+        }
+        .theme-icon {
+            font-size: 1.5em;
         }
     </style>
 </head>
@@ -81,13 +140,13 @@
         <div class="row">
             {% for article in articles %}
             <div class="col-md-4 mb-4">
-                <div class="card">
+                <div class="card {{ 'dark-theme' if theme == 'dark' else 'light-theme' }}">
                     <img src="{{ article.image }}" class="card-img-top" alt="Image for {{ article.topic }}">
                     <div class="card-body">
                         <h5 class="card-title">{{ article.title }}</h5>
                         <p class="card-text"><strong>Summary:</strong> {{ article.summary }}</p>
                         <p class="card-text"><strong>Sentiment: {{ article.sentiment }}</strong></p>
-                        <a href="{{ article.url }}" class="btn btn-primary" target="_blank">Read more</a>
+                        <a href="{{ article.url }}" class="btn btn-primary mt-auto" target="_blank">Read more</a>
                     </div>
                 </div>
             </div>
@@ -119,53 +178,85 @@
         {% endif %}
     </div>
 </div>
+<div class="theme-switch-wrapper">
+    <i class="fas fa-sun theme-icon"></i>
+    <div class="theme-switch">
+        <input type="checkbox" id="theme-toggle" />
+        <label for="theme-toggle" class="switch-label">Toggle Theme</label>
+    </div>
+    <i class="fas fa-moon theme-icon"></i>
+</div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
-    $(document).ready(function () {
-        // Show the loading placeholder
-        function showLoading() {
-            $('#loading-placeholder').css('display', 'flex').hide().fadeIn();
-            simulateLoading();
-        }
+    // Show the loading placeholder
+    function showLoading() {
+        $('#loading-placeholder').css('display', 'flex').hide().fadeIn();
+        simulateLoading();
+    }
 
-        // Hide the loading placeholder
-        function hideLoading() {
-            $('#loading-placeholder').fadeOut();
-        }
+    // Hide the loading placeholder
+    function hideLoading() {
+        $('#loading-placeholder').fadeOut();
+    }
 
-        // Simulate loading progress
-        function simulateLoading() {
-            let percentage = 0;
-            const interval = setInterval(function () {
-                if (percentage >= 100) {
-                    clearInterval(interval);
-                } else {
-                    percentage += 1;
-                    $('#loading-progress').text(percentage + '% Loaded');
-                }
-            }, 50);
-        }
+    // Simulate loading progress
+    function simulateLoading() {
+        let percentage = 0;
+        const interval = setInterval(function () {
+            if (percentage >= 100) {
+                clearInterval(interval);
+            } else {
+                percentage += 1;
+                $('#loading-progress').text(percentage + '% Loaded');
+            }
+        }, 50);
+    }
 
-        // Form submission event handler
-        $('form').on('submit', function (e) {
-            showLoading();
-            // Allow the form to submit naturally
+    // Apply theme based on saved preference
+    function applyTheme(theme) {
+        const body = document.body;
+        body.classList.toggle('dark-theme', theme === 'dark');
+        body.classList.toggle('light-theme', theme !== 'dark');
+        document.querySelectorAll('.card').forEach(card => {
+            card.classList.toggle('dark-theme', theme === 'dark');
+            card.classList.toggle('light-theme', theme !== 'dark');
         });
+        document.getElementById('theme-toggle').checked = theme === 'dark';
+    }
 
-        // Pagination link click event handler
-        $(document).on('click', '.page-nav', function (e) {
-            e.preventDefault();
-            showLoading();
-            window.location.href = $(this).attr('href');
-        });
+    // Toggle theme between light and dark
+    function toggleTheme() {
+        const theme = localStorage.getItem('theme') === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', theme);
+        applyTheme(theme);
+    }
 
-        // Ensure loading placeholder is hidden after page load
-        $(window).on('load', function() {
-            hideLoading();
-        });
+    // Load the theme when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+        document.getElementById('theme-toggle').addEventListener('change', toggleTheme);
+    });
+
+    // Form submission event handler
+    $('form').on('submit', function () {
+        showLoading();
+        // Allow the form to submit naturally
+    });
+
+    // Pagination link click event handler
+    $(document).on('click', '.page-nav', function (e) {
+        e.preventDefault();
+        showLoading();
+        window.location.href = $(this).attr('href');
+    });
+
+    // Ensure loading placeholder is hidden after page load
+    $(window).on('load', function() {
+        hideLoading();
     });
 </script>
 </body>
