@@ -22,10 +22,22 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
+            transition: opacity 0.5s;
         }
         #articles-container {
             position: relative;
             min-height: 200px;
+        }
+        .card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .card img {
+            max-height: 150px;
+            object-fit: cover;
         }
     </style>
 </head>
@@ -66,20 +78,21 @@
     <div id="articles-container">
         {% if articles %}
         <h2 class="my-4">{{ query or from_date or to_date and 'Search Results' or 'Latest News' }}</h2>
-        <ul class="list-unstyled">
+        <div class="row">
             {% for article in articles %}
-            <li class="media mb-4">
-                <img src="{{ article.image }}" class="mr-3" alt="Image for {{ article.topic }}" style="width: 150px;">
-                <div class="media-body">
-                    <h5 class="mt-0 mb-1">{{ article.title }}</h5>
-                    <p><strong>Summary:</strong> {{ article.summary }}</p>
-                    <!-- <p>{{ article.content }}</p> -->
-                    <strong>Sentiment: {{ article.sentiment }}</strong><br>
-                    <a href="{{ article.url }}" target="_blank">Read more</a>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <img src="{{ article.image }}" class="card-img-top" alt="Image for {{ article.topic }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ article.title }}</h5>
+                        <p class="card-text"><strong>Summary:</strong> {{ article.summary }}</p>
+                        <p class="card-text"><strong>Sentiment: {{ article.sentiment }}</strong></p>
+                        <a href="{{ article.url }}" class="btn btn-primary" target="_blank">Read more</a>
+                    </div>
                 </div>
-            </li>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
         <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center">
                 {% if pagination.has_prev %}
@@ -112,41 +125,47 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
     $(document).ready(function () {
-        $('form').on('submit', function () {
-            $('#loading-placeholder').show();
+        // Show the loading placeholder
+        function showLoading() {
+            $('#loading-placeholder').css('display', 'flex').hide().fadeIn();
             simulateLoading();
-        });
-
-        $(document).on('click', '.page-nav', function (e) {
-            e.preventDefault();
-            $('#loading-placeholder').show();
-            simulateLoading();
-            window.location.href = $(this).attr('href');
-        });
-
-        $(window).on('load', function() {
-            $('#loading-placeholder').hide();
-        });
-
-        $(document).ajaxStop(function () {
-            $('#loading-placeholder').hide();
-        });
-
-        function updateProgress(percentage) {
-            $('#loading-progress').text(percentage + '% Loaded');
         }
 
+        // Hide the loading placeholder
+        function hideLoading() {
+            $('#loading-placeholder').fadeOut();
+        }
+
+        // Simulate loading progress
         function simulateLoading() {
-            var percentage = 0;
-            var interval = setInterval(function () {
+            let percentage = 0;
+            const interval = setInterval(function () {
                 if (percentage >= 100) {
                     clearInterval(interval);
                 } else {
                     percentage += 1;
-                    updateProgress(percentage);
+                    $('#loading-progress').text(percentage + '% Loaded');
                 }
-            }, 200);
+            }, 50);
         }
+
+        // Form submission event handler
+        $('form').on('submit', function (e) {
+            showLoading();
+            // Allow the form to submit naturally
+        });
+
+        // Pagination link click event handler
+        $(document).on('click', '.page-nav', function (e) {
+            e.preventDefault();
+            showLoading();
+            window.location.href = $(this).attr('href');
+        });
+
+        // Ensure loading placeholder is hidden after page load
+        $(window).on('load', function() {
+            hideLoading();
+        });
     });
 </script>
 </body>
