@@ -53,7 +53,9 @@
                 <input type="date" class="form-control" id="to_date" name="to_date" value="{{ to_date }}">
             </div>
         </div>
-        <button type="submit" class="btn btn-primary">Analyze</button>
+        <div class="form-group col-md-12 d-flex justify-content-center">
+            <button type="submit" class="btn btn-primary">Analyze</button>
+        </div>
         <div id="loading-placeholder">
             <div id="loading-spinner" class="spinner-border text-light" role="status">
                 <span class="sr-only">Loading...</span>
@@ -71,7 +73,7 @@
                 <div class="media-body">
                     <h5 class="mt-0 mb-1">{{ article.title }}</h5>
                     <p><strong>Summary:</strong> {{ article.summary }}</p>
-                    <p>{{ article.content }}</p>
+                    <!-- <p>{{ article.content }}</p> -->
                     <strong>Sentiment: {{ article.sentiment }}</strong><br>
                     <a href="{{ article.url }}" target="_blank">Read more</a>
                 </div>
