@@ -206,7 +206,7 @@
         <div class="alert alert-warning" role="alert">
             News data is available from {{ date_min }} to {{ date_max }}. If you
             need more data processed for sentiment analysis, please
-            <a href="mailto:aa9429@rit.edu">contact us</a>.
+            <a href="#contact-us">Contact Us</a>
         </div>
         <form method="POST" action="{{ url_for('index') }}" class="my-4">
             <div class="form-row">
@@ -436,7 +436,7 @@
             hideLoading();
         });
     </script>
-    <footer class="text-center mt-5 py-4">
+    <footer id="contact-us" class="text-center mt-5 py-4">
         <div class="footer-card">
             <p class="mb-0">
                 Made by
