@@ -55,7 +55,8 @@ def index():
         from_date = request.args.get('from_date', '')
         to_date = request.args.get('to_date', '')
 
-    cache_key = f"{query}_{from_date}_{to_date}_{page}"
+    # Construct cache key including page number
+    cache_key = f"{query or ''}_{from_date or ''}_{to_date or ''}_{page}"
     cached_articles = cache.get(cache_key)
 
     if cached_articles is None:
@@ -67,7 +68,7 @@ def index():
                     filtered_articles['title'].str.contains(query, case=False, na=False) |
                     filtered_articles['author'].str.contains(query, case=False, na=False) |
                     filtered_articles['source'].str.contains(query, case=False, na=False)
-                    ]
+                ]
             if from_date:
                 from_date = pd.to_datetime(from_date, errors='coerce')
                 if from_date.tzinfo is None:
@@ -84,7 +85,10 @@ def index():
             end = start + per_page
             current_articles = filtered_articles.iloc[start:end].copy()
 
-            current_articles['image'] = current_articles.apply(lambda row: row['image'] if pd.notna(row['image']) else DEFAULT_IMAGES.get(row['topic'].lower(), FALLBACK_IMAGE), axis=1)
+            current_articles['image'] = current_articles.apply(
+                lambda row: row['image'] if pd.notna(row['image']) else DEFAULT_IMAGES.get(row['topic'].lower(), FALLBACK_IMAGE),
+                axis=1
+            )
 
             pagination = {
                 'total': total,
@@ -94,15 +98,18 @@ def index():
                 'has_next': page < (total - 1) // per_page + 1,
             }
         else:
-            current_articles = articles.sort_values(by='published_at', ascending=False).head(per_page).copy()
-            current_articles['image'] = current_articles.apply(lambda row: row['image'] if pd.notna(row['image']) else DEFAULT_IMAGES.get(row['topic'].lower(), FALLBACK_IMAGE), axis=1)
+            current_articles = articles.sort_values(by='published_at', ascending=False).iloc[(page-1)*per_page:page*per_page].copy()
+            current_articles['image'] = current_articles.apply(
+                lambda row: row['image'] if pd.notna(row['image']) else DEFAULT_IMAGES.get(row['topic'].lower(), FALLBACK_IMAGE),
+                axis=1
+            )
 
             pagination = {
                 'total': len(articles),
                 'pages': (len(articles) - 1) // per_page + 1,
-                'page': 1,
-                'has_prev': False,
-                'has_next': len(articles) > per_page,
+                'page': page,
+                'has_prev': page > 1,
+                'has_next': page < (len(articles) - 1) // per_page + 1,
             }
 
         cached_articles = (current_articles.to_dict(orient='records'), pagination)

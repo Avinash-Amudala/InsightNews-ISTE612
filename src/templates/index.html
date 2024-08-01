@@ -178,7 +178,7 @@
             <ul class="pagination justify-content-center">
                 {% if pagination.has_prev %}
                 <li class="page-item">
-                    <a class="page-link page-nav" href="{{ url_for('index', page=pagination.page - 1, query=query, from_date=from_date, to_date=to_date) }}" aria-label="Previous">
+                    <a class="page-link page-nav" href="{{ url_for('index', page=pagination.page - 1, query=query if query else None, from_date=from_date if from_date else None, to_date=to_date if to_date else None) }}" aria-label="Previous">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
                 </li>
@@ -188,13 +188,13 @@
                 </li>
                 {% if pagination.has_next %}
                 <li class="page-item">
-                    <a class="page-link page-nav" href="{{ url_for('index', page=pagination.page + 1, query=query, from_date=from_date, to_date=to_date) }}" aria-label="Next">
+                    <a class="page-link page-nav" href="{{ url_for('index', page=pagination.page + 1, query=query if query else None, from_date=from_date if from_date else None, to_date=to_date if to_date else None) }}" aria-label="Next">
                         <span aria-hidden="true">&raquo;</span>
                     </a>
                 </li>
                 {% endif %}
             </ul>
-        </nav>
+        </nav>    
         {% else %}
         <p class="text-center">No articles to display. Please use the search form above to find articles.</p>
         {% endif %}
