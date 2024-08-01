@@ -179,18 +179,25 @@
     <div id="articles-container">
         {% if articles %}
         <h2 class="my-4">
-            {% if query %}
-                Searched for "{{ query }}"
+            {% if query and from_date and to_date %}
+                Searched for "{{ query }}" from {{ from_date|dateformat }} to {{ to_date|dateformat }}
+            {% elif query and from_date %}
+                Searched for "{{ query }}" from {{ from_date|dateformat }}
+            {% elif query and to_date %}
+                Searched for "{{ query }}" up to {{ to_date|dateformat }}
             {% elif from_date and to_date %}
                 Searched from {{ from_date|dateformat }} to {{ to_date|dateformat }}
             {% elif from_date %}
                 Searched from {{ from_date|dateformat }}
             {% elif to_date %}
                 Searched up to {{ to_date|dateformat }}
+            {% elif query %}
+                Searched for "{{ query }}"
             {% else %}
                 Latest News
             {% endif %}
         </h2>
+        
         <div class="row">
             {% for article in articles %}
             <div class="col-md-4 mb-4">
@@ -313,6 +320,10 @@
         const currentPage = currentPageElement.dataset.currentPage;
         document.getElementById('page-input').value = currentPage;
     }
+
+    // Set dynamic default dates
+    document.getElementById('from_date').value = document.getElementById('from_date').value || '2024-06-01';
+    document.getElementById('to_date').value = document.getElementById('to_date').value || '2024-06-30';
     });
 
     // Form submission event handler
