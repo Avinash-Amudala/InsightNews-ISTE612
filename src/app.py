@@ -38,7 +38,7 @@ FALLBACK_IMAGE = 'static/images/default.jpg'
 @app.route('/', methods=['GET', 'POST'])
 def index():
     page = request.args.get('page', 1, type=int)
-    per_page = 10
+    per_page = 12
 
     query = ''
     from_date = ''
