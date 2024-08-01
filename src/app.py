@@ -49,23 +49,26 @@ def index():
     query = ''
     from_date = ''
     to_date = ''
+    sentiment = ''
     filtered_articles = pd.DataFrame()
 
     if request.method == 'POST':
         query = request.form.get('query', '')
         from_date = request.form.get('from_date')
         to_date = request.form.get('to_date')
+        sentiment = request.form.get('sentiment', '')
     else:
         query = request.args.get('query', '')
         from_date = request.args.get('from_date', '')
         to_date = request.args.get('to_date', '')
+        sentiment = request.args.get('sentiment', '')
 
     # Construct cache key including page number
-    cache_key = f"{query or ''}_{from_date or ''}_{to_date or ''}_{page}"
+    cache_key = f"{query or ''}_{from_date or ''}_{to_date or ''}_{sentiment or ''}_{page}"
     cached_articles = cache.get(cache_key)
 
     if cached_articles is None:
-        if query or from_date or to_date:
+        if query or from_date or to_date or sentiment:
             filtered_articles = articles.copy()
             if query:
                 filtered_articles = filtered_articles[
@@ -84,6 +87,8 @@ def index():
                 if to_date.tzinfo is None:
                     to_date = to_date.tz_localize('UTC')
                 filtered_articles = filtered_articles[filtered_articles['published_at'] <= to_date]
+            if sentiment:
+                filtered_articles = filtered_articles[filtered_articles['sentiment'].str.lower() == sentiment.lower()]
 
             total = len(filtered_articles)
             start = (page - 1) * per_page
@@ -124,7 +129,7 @@ def index():
 
     current_articles, pagination = cached_articles
 
-    return render_template('index.html', articles=current_articles, pagination=pagination, query=query, from_date=from_date, to_date=to_date, date_min=date_min, date_max=date_max)
+    return render_template('index.html', articles=current_articles, pagination=pagination, query=query, from_date=from_date, to_date=to_date, sentiment=sentiment, date_min=date_min, date_max=date_max)
 
 @app.template_filter('dateformat')
 def dateformat(value, format='%B %d, %Y'):
