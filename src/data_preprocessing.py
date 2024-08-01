@@ -3,6 +3,7 @@ import os
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import string
+import re
 
 def load_data(directory):
     files = [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('.csv')]
@@ -42,6 +43,15 @@ def preprocess_data(df):
     df = df[df['content_length'] > 3]
     after_cleaning_count = len(df)
     print(f"Records after cleaning content: {after_cleaning_count} (Removed {after_dropna_count - after_cleaning_count})")
+
+    # Drop duplicates based on the 'cleaned_content' column
+    df = df.drop_duplicates('cleaned_content')
+
+    # Define the pattern to search for in the 'title' column
+    pattern = re.compile(r'image \d+ of \d+', re.IGNORECASE)
+
+    # Filter out rows where the 'title' matches the pattern
+    df = df[~df['title'].apply(lambda x: bool(pattern.search(x)) if pd.notnull(x) else False)]
 
     final_count = len(df)
     print(f"Preprocessed data from {initial_count} to {final_count} records.")
