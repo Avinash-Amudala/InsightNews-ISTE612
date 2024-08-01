@@ -184,6 +184,29 @@
         .footer-card a:hover {
             text-decoration: underline;
         }
+
+        .animated-text {
+            color: #00ffe5;
+            font-weight: bold;
+            animation: fadeColorChange 3s infinite;
+        }
+
+        @keyframes fadeColorChange {
+            0% {
+                color: #00ffe5;
+                opacity: 1;
+            }
+
+            50% {
+                color: #ff007a;
+                opacity: 0.5;
+            }
+
+            100% {
+                color: #00ffe5;
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 
@@ -449,7 +472,7 @@
         <div class="footer-card">
             <p class="mb-0">
                 Made by
-                <span style="color: #bf0000; font-weight: bold">TEAM THREE</span>
+                <span class="animated-text">TEAM THREE</span>
             </p>
             <p class="mb-0">
                 <a href="mailto:aa9429@rit.edu">Avinash Amudala</a>
