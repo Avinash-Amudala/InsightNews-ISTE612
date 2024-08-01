@@ -106,6 +106,38 @@
             text-decoration: none;
             color: inherit;
         }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1050;
+        }
+        .loading-spinner {
+            text-align: center;
+            color: white;
+            font-size: 2rem;
+        }
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+            cursor: default;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .page-input {
+        width: 80px;
+        min-width: 60px;
+        text-align: center;
+        }
+
     </style>
 </head>
 <body>
@@ -125,22 +157,24 @@
             </div>
             <div class="form-group col-md-2">
                 <label for="from_date">From Date:</label>
-                <input type="date" class="form-control" id="from_date" name="from_date" value="{{ from_date }}">
+                <input type="date" class="form-control" id="from_date" name="from_date" value="{{ from_date or '2024-06-01' }}">
             </div>
             <div class="form-group col-md-2">
                 <label for="to_date">To Date:</label>
-                <input type="date" class="form-control" id="to_date" name="to_date" value="{{ to_date }}">
+                <input type="date" class="form-control" id="to_date" name="to_date" value="{{ to_date or '2024-06-30' }}">
             </div>
         </div>
         <div class="form-group col-md-12 d-flex justify-content-center">
             <button type="submit" class="btn btn-primary">Analyze</button>
         </div>
     </form>
-    <div id="loading-placeholder">
-        <div id="loading-spinner" class="spinner-border text-light" role="status">
-            <span class="sr-only">Loading...</span>
+    <div id="loading-overlay" class="loading-overlay" style="display:none;">
+        <div class="loading-spinner">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <div id="loading-progress" class="mt-2">0% Loaded</div>
         </div>
-        <div id="loading-progress">0% Loaded</div>
     </div>
     <div id="articles-container">
         {% if articles %}
@@ -178,23 +212,35 @@
             <ul class="pagination justify-content-center">
                 {% if pagination.has_prev %}
                 <li class="page-item">
-                    <a class="page-link page-nav" href="{{ url_for('index', page=pagination.page - 1, query=query if query else None, from_date=from_date if from_date else None, to_date=to_date if to_date else None) }}" aria-label="Previous">
+                    <a class="page-link page-nav" href="{{ url_for('index', page=1, to_date=to_date if to_date else None, from_date=from_date if from_date else None, query=query if query else None) }}" aria-label="First" title="Go to first page">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link page-nav" href="{{ url_for('index', page=pagination.page - 1, to_date=to_date if to_date else None, from_date=from_date if from_date else None, query=query if query else None) }}" aria-label="Previous" title="Go to previous page">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
                 </li>
                 {% endif %}
-                <li class="page-item disabled">
-                    <span class="page-link">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+                <li class="page-item active d-flex align-items-center" data-current-page="{{ pagination.page }}">
+                    <span class="align-self-center">Page&nbsp;</span>
+                    <input type="number" id="page-input" class="form-control page-input" value="{{ pagination.page }}" min="1" max="{{ pagination.pages }}" aria-label="Page number">
+                    <span class="align-self-center mx-2"> of {{ pagination.pages }}</span>
                 </li>
                 {% if pagination.has_next %}
                 <li class="page-item">
-                    <a class="page-link page-nav" href="{{ url_for('index', page=pagination.page + 1, query=query if query else None, from_date=from_date if from_date else None, to_date=to_date if to_date else None) }}" aria-label="Next">
+                    <a class="page-link page-nav" href="{{ url_for('index', page=pagination.page + 1, to_date=to_date if to_date else None, from_date=from_date if from_date else None, query=query if query else None) }}" aria-label="Next" title="Go to next page">
                         <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link page-nav" href="{{ url_for('index', page=pagination.pages, to_date=to_date if to_date else None, from_date=from_date if from_date else None, query=query if query else None) }}" aria-label="Last" title="Go to last page">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
                     </a>
                 </li>
                 {% endif %}
             </ul>
-        </nav>    
+        </nav>         
         {% else %}
         <p class="text-center">No articles to display. Please use the search form above to find articles.</p>
         {% endif %}
@@ -215,13 +261,13 @@
 <script>
     // Show the loading placeholder
     function showLoading() {
-        $('#loading-placeholder').css('display', 'flex').fadeIn();
+        $('#loading-overlay').fadeIn();
         simulateLoading();
     }
 
     // Hide the loading placeholder
     function hideLoading() {
-        $('#loading-placeholder').fadeOut();
+        $('#loading-overlay').fadeOut();
     }
 
     // Simulate loading progress
@@ -256,11 +302,17 @@
         applyTheme(theme);
     }
 
-    // Load the theme when the page loads
     document.addEventListener('DOMContentLoaded', () => {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        applyTheme(savedTheme);
-        document.getElementById('theme-toggle').addEventListener('change', toggleTheme);
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+    document.getElementById('theme-toggle').addEventListener('change', toggleTheme);
+
+    // Get the current page from data attribute and set the page input
+    const currentPageElement = document.querySelector('.pagination .page-item.active');
+    if (currentPageElement) {
+        const currentPage = currentPageElement.dataset.currentPage;
+        document.getElementById('page-input').value = currentPage;
+    }
     });
 
     // Form submission event handler
@@ -274,6 +326,16 @@
         e.preventDefault();
         showLoading();
         window.location.href = $(this).attr('href');
+    });
+
+    // Update page input change event handler to include max page validation
+    $('#page-input').on('change', function () {
+        let page = $(this).val();
+        let maxPage = parseInt($(this).attr('max'), 10);
+        if (page < 1 || isNaN(page)) page = 1;
+        if (page > maxPage) page = maxPage;
+        showLoading();
+        window.location.href = "{{ url_for('index', query=query if query else None, from_date=from_date if from_date else None, to_date=to_date if to_date else None) }}?page=" + page;
     });
 
     // Ensure loading placeholder is hidden after page load

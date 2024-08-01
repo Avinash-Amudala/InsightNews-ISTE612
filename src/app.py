@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
 import pandas as pd
 import re
 from flask_caching import Cache
@@ -35,6 +35,11 @@ DEFAULT_IMAGES = {
 }
 
 FALLBACK_IMAGE = 'static/images/default.jpg'
+
+def calculate_page_range(current_page, total_pages, delta=2):
+    start_page = max(current_page - delta, 1)
+    end_page = min(current_page + delta, total_pages) + 1
+    return range(start_page, end_page)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -96,6 +101,7 @@ def index():
                 'page': page,
                 'has_prev': page > 1,
                 'has_next': page < (total - 1) // per_page + 1,
+                'page_range': calculate_page_range(page, (total - 1) // per_page + 1)
             }
         else:
             current_articles = articles.sort_values(by='published_at', ascending=False).iloc[(page-1)*per_page:page*per_page].copy()
@@ -110,6 +116,7 @@ def index():
                 'page': page,
                 'has_prev': page > 1,
                 'has_next': page < (len(articles) - 1) // per_page + 1,
+                'page_range': calculate_page_range(page, (len(articles) - 1) // per_page + 1)
             }
 
         cached_articles = (current_articles.to_dict(orient='records'), pagination)
