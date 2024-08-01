@@ -16,7 +16,7 @@
             color: #f8f9fa;
         }
         .card {
-            transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s, border 0.3s;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.3s, border 0.3s;
             min-height: 500px;
             display: flex;
             flex-direction: column;
@@ -45,6 +45,10 @@
         }
         .card .btn {
             margin-top: auto;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
         }
         .theme-switch-wrapper {
             position: fixed;
@@ -98,6 +102,10 @@
         .theme-icon {
             font-size: 1.5em;
         }
+        .card-link {
+            text-decoration: none;
+            color: inherit;
+        }
     </style>
 </head>
 <body>
@@ -127,13 +135,13 @@
         <div class="form-group col-md-12 d-flex justify-content-center">
             <button type="submit" class="btn btn-primary">Analyze</button>
         </div>
-        <div id="loading-placeholder">
-            <div id="loading-spinner" class="spinner-border text-light" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
-            <div id="loading-progress">0% Loaded</div>
-        </div>
     </form>
+    <div id="loading-placeholder">
+        <div id="loading-spinner" class="spinner-border text-light" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <div id="loading-progress">0% Loaded</div>
+    </div>
     <div id="articles-container">
         {% if articles %}
         <h2 class="my-4">
@@ -152,15 +160,17 @@
         <div class="row">
             {% for article in articles %}
             <div class="col-md-4 mb-4">
-                <div class="card {{ 'dark-theme' if theme == 'dark' else 'light-theme' }}">
-                    <img src="{{ article.image }}" class="card-img-top" alt="Image for {{ article.topic }}">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ article.title }}</h5>
-                        <p class="card-text"><strong>Summary:</strong> {{ article.summary }}</p>
-                        <p class="card-text"><strong>Sentiment: {{ article.sentiment }}</strong></p>
-                        <a href="{{ article.url }}" class="btn btn-primary mt-auto" target="_blank">Read more</a>
+                <a href="{{ article.url }}" class="card-link">
+                    <div class="card {{ 'dark-theme' if theme == 'dark' else 'light-theme' }}">
+                        <img src="{{ article.image }}" class="card-img-top" alt="Image for {{ article.topic }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ article.title }}</h5>
+                            <p class="card-text"><strong>Summary:</strong> {{ article.summary }}</p>
+                            <p class="card-text"><strong>Sentiment: {{ article.sentiment }}</strong></p>
+                            <a href="{{ article.url }}" class="btn btn-primary mt-auto" target="_blank">Read more</a>
+                        </div>
                     </div>
-                </div>
+                </a>
             </div>
             {% endfor %}
         </div>
@@ -205,7 +215,7 @@
 <script>
     // Show the loading placeholder
     function showLoading() {
-        $('#loading-placeholder').css('display', 'flex').hide().fadeIn();
+        $('#loading-placeholder').css('display', 'flex').fadeIn();
         simulateLoading();
     }
 
