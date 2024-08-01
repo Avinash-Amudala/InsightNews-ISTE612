@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
+import re
 from flask_caching import Cache
 
 app = Flask(__name__)
@@ -14,6 +15,9 @@ data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data'
 print(f"Loading data from {data_path}")
 try:
     articles = pd.read_csv(data_path)
+    articles = articles.drop_duplicates('summary')
+    pattern = re.compile(r'image \d+ of \d+', re.IGNORECASE)
+    articles = articles[~articles['title'].apply(lambda x: bool(pattern.search(x)) if pd.notnull(x) else False)]
     articles['published_at'] = pd.to_datetime(articles['published_at'], errors='coerce').dt.tz_convert('UTC')
     date_min = articles['published_at'].min().strftime('%Y-%m-%d')
     date_max = articles['published_at'].max().strftime('%Y-%m-%d')
