@@ -7,7 +7,9 @@ def analyze_sentiment(df, tokenizer, model):
     print("Starting sentiment analysis...")
     inputs = tokenizer(list(df['cleaned_content']), return_tensors='pt', truncation=True, padding=True)
     outputs = model(**inputs)
-    df['sentiment'] = outputs.logits.argmax(dim=-1).numpy()
+    predictions = outputs.logits.argmax(dim=-1).numpy()
+    sentiment_map = {0: 'negative', 1: 'neutral', 2: 'positive'}
+    df['sentiment'] = [sentiment_map[pred] for pred in predictions]
     print("Sentiment analysis complete.")
     return df
 
@@ -16,8 +18,8 @@ def summarize_content(df, tokenizer, model, max_length=30):
     summaries = []
     for text in df['cleaned_content']:
         inputs = tokenizer.encode("summarize: " + text, return_tensors='pt', max_length=512, truncation=True)
-        outputs = model.generate(inputs, max_length=max_length, min_length=5, length_penalty=2.0, num_beams=4, early_stopping=True)
-        summary = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        outputs = model.generate()
+        summary = tokenizer.decode()
         summaries.append(summary)
     df['summary'] = summaries
     print("Summarization complete.")
@@ -33,13 +35,11 @@ def process_batch(df_batch, sentiment_tokenizer, sentiment_model, summarizer_tok
 def run_sentiment_analysis(input_file, output_file, batch_size=50):
     print("Loading cleaned data...")
     df = pd.read_csv(input_file)
-
     print("Columns in the dataframe:", df.columns)
 
     print("Setting up sentiment analyzer...")
     sentiment_tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
-    sentiment_model = RobertaForSequenceClassification.from_pretrained("roberta-base")
-
+    sentiment_model = RobertaForSequenceClassification.from_pretrained("roberta-base", num_labels=3)
     print("Setting up summarizer...")
     summarizer_tokenizer = T5Tokenizer.from_pretrained("t5-small")
     summarizer_model = T5ForConditionalGeneration.from_pretrained("t5-small")
