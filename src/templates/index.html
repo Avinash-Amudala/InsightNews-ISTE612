@@ -361,7 +361,7 @@
 
         <!-- Analytics Section -->
         <div id="analytics-section" style="{% if action != 'analytics' %}display: none{% endif %}">
-            {% if graph_html and bar_chart_html and pie_chart_html and source_html and author_html and wordcloud_html and geo_html and length_html and topic_html and intensity_html %}
+            {% if graph_html and bar_chart_html and pie_chart_html and source_html and author_html and geo_html and length_html and topic_html %}
             <h2 class="my-4">
                 {% if query and from_date and to_date %} Analytics for "{{ query }}"
                 from {{ from_date|dateformat }} to {{ to_date|dateformat }} {% elif
@@ -412,10 +412,10 @@
             </div>
             <br>
 
-            <!-- Sentiment by Source -->
+            <!-- Top 10 Sources by Sentiment -->
             <div class="card">
                 <div class="card-header">
-                    <strong>Sentiment Over Time by Source</strong>
+                    <strong>Top 10 Sources by Sentiment</strong>
                 </div>
                 <div class="card-body">
                     <div id="sentiment-source">
@@ -425,27 +425,14 @@
             </div>
             <br>
 
-            <!-- Top Authors by Sentiment -->
+            <!-- Top 10 Authors by Sentiment -->
             <div class="card">
                 <div class="card-header">
-                    <strong>Top Authors by Sentiment</strong>
+                    <strong>Top 10 Authors by Sentiment</strong>
                 </div>
                 <div class="card-body">
                     <div id="sentiment-author">
                         {{ author_html | safe }}
-                    </div>
-                </div>
-            </div>
-            <br>
-
-            <!-- Sentiment Word Cloud -->
-            <div class="card">
-                <div class="card-header">
-                    <strong>Sentiment Word Cloud</strong>
-                </div>
-                <div class="card-body">
-                    <div id="sentiment-wordcloud">
-                        {{ wordcloud_html | safe }}
                     </div>
                 </div>
             </div>
@@ -485,19 +472,6 @@
                 <div class="card-body">
                     <div id="sentiment-topic">
                         {{ topic_html | safe }}
-                    </div>
-                </div>
-            </div>
-            <br>
-
-            <!-- Sentiment Intensity Distribution -->
-            <div class="card">
-                <div class="card-header">
-                    <strong>Sentiment Intensity Distribution</strong>
-                </div>
-                <div class="card-body">
-                    <div id="sentiment-intensity">
-                        {{ intensity_html | safe }}
                     </div>
                 </div>
             </div>
@@ -591,7 +565,7 @@
             };
             const layout = theme === "dark" ? layoutDark : layoutLight;
 
-            const charts = ['sentiment-trend', 'sentiment-topic-bar', 'sentiment-pie', 'sentiment-source', 'sentiment-author', 'sentiment-wordcloud', 'sentiment-geo', 'sentiment-length', 'sentiment-topic', 'sentiment-intensity'];
+            const charts = ['sentiment-trend', 'sentiment-topic-bar', 'sentiment-pie', 'sentiment-source', 'sentiment-author', 'sentiment-geo', 'sentiment-length', 'sentiment-topic'];
             charts.forEach(chartId => {
                 const chartDiv = document.getElementById(chartId);
                 if (chartDiv && chartDiv.data) {

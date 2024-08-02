@@ -10,9 +10,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.cluster import KMeans
-from wordcloud import WordCloud
-import base64
-from io import BytesIO
 
 app = Flask(__name__)
 
@@ -59,14 +56,6 @@ def calculate_page_range(current_page, total_pages, delta=2):
     end_page = min(current_page + delta, total_pages) + 1
     return range(start_page, end_page)
 
-def generate_wordcloud(text):
-    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text)
-    buffer = BytesIO()
-    wordcloud.to_image().save(buffer, format='PNG')
-    buffer.seek(0)
-    img_str = base64.b64encode(buffer.read()).decode('utf-8')
-    return img_str
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
     page = request.args.get('page', 1, type=int)
@@ -83,11 +72,9 @@ def index():
     pie_chart_html = None
     source_html = None
     author_html = None
-    wordcloud_html = None
     geo_html = None
     length_html = None
     topic_html = None
-    intensity_html = None
     action = None
 
     if request.method == 'POST':
@@ -143,20 +130,17 @@ def index():
             fig_bar = px.bar(topic_sentiments.reset_index(), x='topic', y=topic_sentiments.columns, barmode='group', title='Sentiment Distribution Across Topics', template='plotly_dark')
             bar_chart_html = fig_bar.to_html(full_html=False)
 
-            # Sentiment by source
-            sentiment_by_source = filtered_articles.groupby(['source', 'published_at'])['roberta_sentiment'].value_counts().unstack().fillna(0)
-            fig_source = px.line(sentiment_by_source.reset_index(), x='published_at', y=sentiment_by_source.columns, title='Sentiment Over Time by Source', template='plotly_dark')
+            # Top 10 sources by sentiment
+            source_sentiments = filtered_articles.groupby('source')['roberta_sentiment'].value_counts().unstack().fillna(0)
+            top_sources = source_sentiments.sum(axis=1).nlargest(10).index
+            fig_source = px.bar(source_sentiments.loc[top_sources].reset_index(), x='source', y=source_sentiments.columns, barmode='group', title='Top 10 Sources by Sentiment', template='plotly_dark')
             source_html = fig_source.to_html(full_html=False)
 
-            # Top authors by sentiment
+            # Top authors by sentiment (Top 10)
             author_sentiments = filtered_articles.groupby('author')['roberta_sentiment'].value_counts().unstack().fillna(0)
-            fig_author = px.bar(author_sentiments.reset_index(), x='author', y=author_sentiments.columns, barmode='group', title='Top Authors by Sentiment', template='plotly_dark')
+            top_authors = author_sentiments.sum(axis=1).nlargest(10).index
+            fig_author = px.bar(author_sentiments.loc[top_authors].reset_index(), x='author', y=author_sentiments.columns, barmode='group', title='Top Authors by Sentiment (Top 10)', template='plotly_dark')
             author_html = fig_author.to_html(full_html=False)
-
-            # Sentiment word cloud
-            text = ' '.join(filtered_articles['cleaned_content'].dropna().values)
-            wordcloud_image = generate_wordcloud(text)
-            wordcloud_html = f'<img src="data:image/png;base64,{wordcloud_image}" alt="Sentiment Word Cloud">'
 
             # Geographical sentiment distribution
             geo_sentiments = filtered_articles.groupby('country')['roberta_sentiment'].value_counts().unstack().fillna(0)
@@ -173,11 +157,6 @@ def index():
             topic_sentiments_trend = filtered_articles.groupby(['topic', 'published_at'])['roberta_sentiment'].value_counts().unstack().fillna(0)
             fig_topic = px.line(topic_sentiments_trend.reset_index(), x='published_at', y=topic_sentiments_trend.columns, color='topic', title='Trending Topics with Sentiment', template='plotly_dark')
             topic_html = fig_topic.to_html(full_html=False)
-
-            # Sentiment intensity distribution
-            intensity_sentiments = filtered_articles['roberta_sentiment']
-            fig_intensity = px.histogram(intensity_sentiments, title='Sentiment Intensity Distribution', template='plotly_dark')
-            intensity_html = fig_intensity.to_html(full_html=False)
 
             # Sentiment classification pie chart
             sentiment_stats = filtered_articles['roberta_sentiment'].value_counts()
@@ -196,16 +175,12 @@ def index():
                 print("Error: source_html is empty")
             if not author_html:
                 print("Error: author_html is empty")
-            if not wordcloud_html:
-                print("Error: wordcloud_html is empty")
             if not geo_html:
                 print("Error: geo_html is empty")
             if not length_html:
                 print("Error: length_html is empty")
             if not topic_html:
                 print("Error: topic_html is empty")
-            if not intensity_html:
-                print("Error: intensity_html is empty")
 
     else:
         query = request.args.get('query', '')
@@ -281,7 +256,7 @@ def index():
 
     current_articles, pagination = cached_articles
 
-    return render_template('index.html', articles=current_articles, pagination=pagination, query=query, from_date=from_date, to_date=to_date, sentiment=sentiment, date_min=date_min, date_max=date_max, graph_html=graph_html, bar_chart_html=bar_chart_html, pie_chart_html=pie_chart_html, source_html=source_html, author_html=author_html, wordcloud_html=wordcloud_html, geo_html=geo_html, length_html=length_html, topic_html=topic_html, intensity_html=intensity_html, action=action)
+    return render_template('index.html', articles=current_articles, pagination=pagination, query=query, from_date=from_date, to_date=to_date, sentiment=sentiment, date_min=date_min, date_max=date_max, graph_html=graph_html, bar_chart_html=bar_chart_html, pie_chart_html=pie_chart_html, source_html=source_html, author_html=author_html, geo_html=geo_html, length_html=length_html, topic_html=topic_html, action=action)
 
 @app.template_filter('dateformat')
 def dateformat(value, format='%B %d, %Y'):
