@@ -56,6 +56,32 @@ def calculate_page_range(current_page, total_pages, delta=2):
     end_page = min(current_page + delta, total_pages) + 1
     return range(start_page, end_page)
 
+def filter_articles(query, from_date, to_date, sentiment):
+    filtered_articles = articles.copy()
+    
+    if query:
+        query_vector = tfidf_vectorizer.transform([query])
+        similarities = cosine_similarity(query_vector, tfidf_matrix).flatten()
+        most_similar_indices = similarities.argsort()[::-1]
+        filtered_articles = filtered_articles.iloc[most_similar_indices]
+
+    if from_date:
+        from_date = pd.to_datetime(from_date, errors='coerce')
+        if from_date.tzinfo is None:
+            from_date = from_date.tz_localize('UTC')
+        filtered_articles = filtered_articles[filtered_articles['published_at'] >= from_date]
+
+    if to_date:
+        to_date = pd.to_datetime(to_date, errors='coerce')
+        if to_date.tzinfo is None:
+            to_date = to_date.tz_localize('UTC')
+        filtered_articles = filtered_articles[filtered_articles['published_at'] <= to_date]
+
+    if sentiment:
+        filtered_articles = filtered_articles[filtered_articles['roberta_sentiment'].str.lower() == sentiment.lower()]
+
+    return filtered_articles
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     page = request.args.get('page', 1, type=int)
@@ -84,31 +110,9 @@ def index():
         to_date = request.form.get('to_date')
         sentiment = request.form.get('sentiment', '')
 
+        filtered_articles = filter_articles(query, from_date, to_date, sentiment)
+
         if action == 'analytics':
-            # Prepare data for sentiment trend visualization
-            filtered_articles = articles.copy()
-
-            if query:
-                query_vector = tfidf_vectorizer.transform([query])
-                similarities = cosine_similarity(query_vector, tfidf_matrix).flatten()
-                most_similar_indices = similarities.argsort()[::-1]
-                filtered_articles = filtered_articles.iloc[most_similar_indices]
-
-            if from_date:
-                from_date = pd.to_datetime(from_date, errors='coerce')
-                if from_date.tzinfo is None:
-                    from_date = from_date.tz_localize('UTC')
-                filtered_articles = filtered_articles[filtered_articles['published_at'] >= from_date]
-
-            if to_date:
-                to_date = pd.to_datetime(to_date, errors='coerce')
-                if to_date.tzinfo is None:
-                    to_date = to_date.tz_localize('UTC')
-                filtered_articles = filtered_articles[filtered_articles['published_at'] <= to_date]
-
-            if sentiment:
-                filtered_articles = filtered_articles[filtered_articles['roberta_sentiment'].str.lower() == sentiment.lower()]
-
             # Debugging: Print filtered articles count
             print(f"Filtered Articles Count: {len(filtered_articles)}")
             print(f"Filtered Articles Sentiments: {filtered_articles['roberta_sentiment'].value_counts()}")
@@ -188,68 +192,31 @@ def index():
         to_date = request.args.get('to_date', '')
         sentiment = request.args.get('sentiment', '')
 
+        filtered_articles = filter_articles(query, from_date, to_date, sentiment)
+
     # Construct cache key including page number
     cache_key = f"{query or ''}_{from_date or ''}_{to_date or ''}_{sentiment or ''}_{page}"
     cached_articles = cache.get(cache_key)
 
     if cached_articles is None:
-        filtered_articles = articles.copy()
+        total = len(filtered_articles)
+        start = (page - 1) * per_page
+        end = start + per_page
+        current_articles = filtered_articles.iloc[start:end].copy()
 
-        if query or from_date or to_date or sentiment:
-            if query:
-                query_vector = tfidf_vectorizer.transform([query])
-                similarities = cosine_similarity(query_vector, tfidf_matrix).flatten()
-                most_similar_indices = similarities.argsort()[::-1]
-                filtered_articles = filtered_articles.iloc[most_similar_indices]
+        current_articles['image'] = current_articles.apply(
+            lambda row: row['image'] if pd.notna(row['image']) else DEFAULT_IMAGES.get(row['topic'].lower(), FALLBACK_IMAGE),
+            axis=1
+        )
 
-            if from_date:
-                from_date = pd.to_datetime(from_date, errors='coerce')
-                if from_date.tzinfo is None:
-                    from_date = from_date.tz_localize('UTC')
-                filtered_articles = filtered_articles[filtered_articles['published_at'] >= from_date]
-
-            if to_date:
-                to_date = pd.to_datetime(to_date, errors='coerce')
-                if to_date.tzinfo is None:
-                    to_date = to_date.tz_localize('UTC')
-                filtered_articles = filtered_articles[filtered_articles['published_at'] <= to_date]
-
-            if sentiment:
-                filtered_articles = filtered_articles[filtered_articles['roberta_sentiment'].str.lower() == sentiment.lower()]
-
-            total = len(filtered_articles)
-            start = (page - 1) * per_page
-            end = start + per_page
-            current_articles = filtered_articles.iloc[start:end].copy()
-
-            current_articles['image'] = current_articles.apply(
-                lambda row: row['image'] if pd.notna(row['image']) else DEFAULT_IMAGES.get(row['topic'].lower(), FALLBACK_IMAGE),
-                axis=1
-            )
-
-            pagination = {
-                'total': total,
-                'pages': (total - 1) // per_page + 1,
-                'page': page,
-                'has_prev': page > 1,
-                'has_next': page < (total - 1) // per_page + 1,
-                'page_range': calculate_page_range(page, (total - 1) // per_page + 1)
-            }
-        else:
-            current_articles = articles.sort_values(by='published_at', ascending=False).iloc[(page-1)*per_page:page*per_page].copy()
-            current_articles['image'] = current_articles.apply(
-                lambda row: row['image'] if pd.notna(row['image']) else DEFAULT_IMAGES.get(row['topic'].lower(), FALLBACK_IMAGE),
-                axis=1
-            )
-
-            pagination = {
-                'total': len(articles),
-                'pages': (len(articles) - 1) // per_page + 1,
-                'page': page,
-                'has_prev': page > 1,
-                'has_next': page < (len(articles) - 1) // per_page + 1,
-                'page_range': calculate_page_range(page, (len(articles) - 1) // per_page + 1)
-            }
+        pagination = {
+            'total': total,
+            'pages': (total - 1) // per_page + 1,
+            'page': page,
+            'has_prev': page > 1,
+            'has_next': page < (total - 1) // per_page + 1,
+            'page_range': calculate_page_range(page, (total - 1) // per_page + 1)
+        }
 
         cached_articles = (current_articles.to_dict(orient='records'), pagination)
         cache.set(cache_key, cached_articles, timeout=5 * 60)
