@@ -4,6 +4,15 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import string
 import re
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import classification_report
+from sklearn.cluster import KMeans
+from collections import defaultdict
+import gc
+from tqdm import tqdm
 
 def load_data(directory):
     files = [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('.csv')]
@@ -58,6 +67,52 @@ def preprocess_data(df):
 
     return df
 
+def create_boolean_incidence_matrix(df):
+    vectorizer = CountVectorizer(binary=True)
+    incidence_matrix = vectorizer.fit_transform(df['cleaned_content'])
+    print(f"Boolean Incidence Matrix shape: {incidence_matrix.shape}")
+    return incidence_matrix, vectorizer
+
+def create_inverted_index(df):
+    vectorizer = CountVectorizer()
+    X = vectorizer.fit_transform(df['cleaned_content'])
+    inverted_index = defaultdict(list)
+    for word, idx in vectorizer.vocabulary_.items():
+        inverted_index[word] = X[:, idx].nonzero()[0].tolist()
+    print(f"Inverted Index created with {len(inverted_index)} terms.")
+    return inverted_index
+
+def vector_space_model(df):
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(df['cleaned_content'])
+    print(f"TF-IDF Matrix shape: {tfidf_matrix.shape}")
+    return tfidf_matrix, vectorizer
+
+def text_classification(df):
+    # Ensure there are no NaN values in the 'cleaned_content' or 'category' columns
+    df = df.dropna(subset=['cleaned_content', 'category'])
+
+    vectorizer = TfidfVectorizer()
+    X = vectorizer.fit_transform(df['cleaned_content'])
+    y = df['category']
+
+    # Ensure that y does not contain any NaN values
+    X = X[~y.isna()]
+    y = y.dropna()
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    classifier = MultinomialNB()
+    classifier.fit(X_train, y_train)
+    y_pred = classifier.predict(X_test)
+    print(classification_report(y_test, y_pred))
+
+def text_clustering(df):
+    vectorizer = TfidfVectorizer()
+    X = vectorizer.fit_transform(df['cleaned_content'])
+    kmeans = KMeans(n_clusters=5, random_state=42)
+    df['cluster'] = kmeans.fit_predict(X)
+    print(f"Cluster distribution:\n{df['cluster'].value_counts()}")
+
 def save_data(df, filename):
     if df.empty:
         print(f"No data to save for {filename}")
@@ -76,6 +131,22 @@ if __name__ == "__main__":
     if not df.empty:
         print("Preprocessing data...")
         df = preprocess_data(df)
+
+        print("Creating Boolean Incidence Matrix...")
+        incidence_matrix, incidence_vectorizer = create_boolean_incidence_matrix(df)
+
+        print("Creating Inverted Index...")
+        inverted_index = create_inverted_index(df)
+
+        print("Applying Vector Space Model...")
+        tfidf_matrix, tfidf_vectorizer = vector_space_model(df)
+
+        print("Performing Text Classification...")
+        text_classification(df)
+
+        print("Performing Text Clustering...")
+        text_clustering(df)
+
         print("Saving cleaned data...")
         save_data(df, processed_data_filename)
     else:
