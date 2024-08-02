@@ -1,9 +1,13 @@
 import os
 from flask import Flask, render_template, request
 import pandas as pd
-import re
 from flask_caching import Cache
 from datetime import datetime
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.cluster import KMeans
+import joblib  # For loading models
 
 app = Flask(__name__)
 
@@ -11,17 +15,29 @@ app = Flask(__name__)
 cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 cache.init_app(app)
 
-# Use the preprocessed data with sentiment and summary
-data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'processed', 'articles_with_sentiment.csv'))
+# Paths to the preprocessed data and models
+data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'processed', 'articles_with_sentiments_and_summaries.csv'))
+tfidf_vectorizer_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'models', 'tfidf_vectorizer.pkl'))
+tfidf_matrix_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'models', 'tfidf_matrix.pkl'))
+classifier_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'models', 'classifier.pkl'))
+kmeans_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'models', 'kmeans.pkl'))
+
 print(f"Loading data from {data_path}")
 try:
     articles = pd.read_csv(data_path)
     articles['published_at'] = pd.to_datetime(articles['published_at'], errors='coerce').dt.tz_convert('UTC')
     date_min = articles['published_at'].min().strftime('%Y-%m-%d')
     date_max = articles['published_at'].max().strftime('%Y-%m-%d')
+
+    # Load precomputed models and matrices
+    tfidf_vectorizer = joblib.load(tfidf_vectorizer_path)
+    tfidf_matrix = joblib.load(tfidf_matrix_path)
+    classifier = joblib.load(classifier_path)
+    kmeans = joblib.load(kmeans_path)
+
 except FileNotFoundError as e:
     print(f"Error: {e}")
-    print("Ensure the articles_with_sentiment.csv file exists.")
+    print("Ensure the necessary files exist.")
     exit(1)
 
 DEFAULT_IMAGES = {
@@ -65,27 +81,29 @@ def index():
     cached_articles = cache.get(cache_key)
 
     if cached_articles is None:
+        filtered_articles = articles.copy()
+
         if query or from_date or to_date or sentiment:
-            filtered_articles = articles.copy()
             if query:
-                filtered_articles = filtered_articles[
-                    filtered_articles['content'].str.contains(query, case=False, na=False) |
-                    filtered_articles['title'].str.contains(query, case=False, na=False) |
-                    filtered_articles['author'].str.contains(query, case=False, na=False) |
-                    filtered_articles['source'].str.contains(query, case=False, na=False)
-                ]
+                query_vector = tfidf_vectorizer.transform([query])
+                similarities = cosine_similarity(query_vector, tfidf_matrix).flatten()
+                most_similar_indices = similarities.argsort()[::-1]
+                filtered_articles = filtered_articles.iloc[most_similar_indices]
+
             if from_date:
                 from_date = pd.to_datetime(from_date, errors='coerce')
                 if from_date.tzinfo is None:
                     from_date = from_date.tz_localize('UTC')
                 filtered_articles = filtered_articles[filtered_articles['published_at'] >= from_date]
+
             if to_date:
                 to_date = pd.to_datetime(to_date, errors='coerce')
                 if to_date.tzinfo is None:
                     to_date = to_date.tz_localize('UTC')
                 filtered_articles = filtered_articles[filtered_articles['published_at'] <= to_date]
+
             if sentiment:
-                filtered_articles = filtered_articles[filtered_articles['sentiment'].str.lower() == sentiment.lower()]
+                filtered_articles = filtered_articles[filtered_articles['roberta_sentiment'].str.lower() == sentiment.lower()]
 
             total = len(filtered_articles)
             start = (page - 1) * per_page
