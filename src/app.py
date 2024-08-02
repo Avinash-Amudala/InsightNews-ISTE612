@@ -4,6 +4,7 @@ from flask import Flask, render_template, request
 from flask_caching import Cache
 from datetime import datetime
 import plotly.express as px
+import plotly.graph_objects as go
 import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -66,6 +67,12 @@ def index():
     sentiment = ''
     filtered_articles = pd.DataFrame()
 
+    graph_html = None
+    bar_chart_html = None
+    pie_chart_html = None
+    sentiment_stats_html = None
+    action = None
+
     if request.method == 'POST':
         action = request.form.get('action')
         query = request.form.get('query', '')
@@ -98,6 +105,10 @@ def index():
             if sentiment:
                 filtered_articles = filtered_articles[filtered_articles['roberta_sentiment'].str.lower() == sentiment.lower()]
 
+            # Debugging: Print filtered articles count
+            print(f"Filtered Articles Count: {len(filtered_articles)}")
+            print(f"Filtered Articles Sentiments: {filtered_articles['roberta_sentiment'].value_counts()}")
+
             trend_data = filtered_articles.copy()
             trend_data['published_at'] = pd.to_datetime(trend_data['published_at'])
             trend_data.set_index('published_at', inplace=True)
@@ -105,25 +116,43 @@ def index():
 
             fig = px.line(sentiment_counts, x=sentiment_counts.index, y=sentiment_counts.columns,
                           labels={'value': 'Sentiment Count', 'published_at': 'Date'},
-                          title='Sentiment Trend Over Time')
+                          title='Sentiment Trend Over Time',
+                          template='plotly_dark')
             graph_html = fig.to_html(full_html=False)
 
             # Detailed exploration of sentiment across topics
             topic_sentiments = filtered_articles.groupby('topic')['roberta_sentiment'].value_counts().unstack().fillna(0)
 
-            # Statistics on sentiment classification accuracy
-            sentiment_stats = {
-                'total_articles': len(filtered_articles),
-                'positive': (filtered_articles['roberta_sentiment'] == 'positive').sum(),
-                'neutral': (filtered_articles['roberta_sentiment'] == 'neutral').sum(),
-                'negative': (filtered_articles['roberta_sentiment'] == 'negative').sum()
-            }
-
-            fig_bar = px.bar(topic_sentiments, barmode='group', title='Sentiment Distribution Across Topics')
+            fig_bar = px.bar(topic_sentiments, barmode='group', title='Sentiment Distribution Across Topics', template='plotly_dark')
             bar_chart_html = fig_bar.to_html(full_html=False)
 
-            return render_template('analytics.html', query=query, from_date=from_date, to_date=to_date, sentiment=sentiment,
-                                   graph_html=graph_html, bar_chart_html=bar_chart_html, sentiment_stats=sentiment_stats)
+            # Sentiment classification statistics
+            sentiment_stats = {
+                'total_articles': len(filtered_articles),
+                'positive': (filtered_articles['roberta_sentiment'].str.lower() == 'positive').sum(),
+                'neutral': (filtered_articles['roberta_sentiment'].str.lower() == 'neutral').sum(),
+                'negative': (filtered_articles['roberta_sentiment'].str.lower() == 'negative').sum()
+            }
+
+            # Sentiment classification pie chart
+            labels = ['Positive', 'Neutral', 'Negative']
+            values = [sentiment_stats['positive'], sentiment_stats['neutral'], sentiment_stats['negative']]
+            fig_pie = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.3)])
+            fig_pie.update_layout(title_text='Sentiment Classification Distribution', template='plotly_dark')
+            pie_chart_html = fig_pie.to_html(full_html=False)
+
+            # # Sentiment classification statistics plot
+            # fig_stats = go.Figure(data=[
+            #     go.Bar(name='Positive', x=['Sentiment'], y=[sentiment_stats['positive']]),
+            #     go.Bar(name='Neutral', x=['Sentiment'], y=[sentiment_stats['neutral']]),
+            #     go.Bar(name='Negative', x=['Sentiment'], y=[sentiment_stats['negative']])
+            # ])
+            # fig_stats.update_layout(barmode='group', title_text='Sentiment Classification Statistics', template='plotly_dark')
+            # sentiment_stats_html = fig_stats.to_html(full_html=False)
+
+            # # Debugging: Print sentiment stats
+            # print(f"Sentiment Stats: {sentiment_stats}")
+
     else:
         query = request.args.get('query', '')
         from_date = request.args.get('from_date', '')
@@ -198,7 +227,7 @@ def index():
 
     current_articles, pagination = cached_articles
 
-    return render_template('index.html', articles=current_articles, pagination=pagination, query=query, from_date=from_date, to_date=to_date, sentiment=sentiment, date_min=date_min, date_max=date_max)
+    return render_template('index.html', articles=current_articles, pagination=pagination, query=query, from_date=from_date, to_date=to_date, sentiment=sentiment, date_min=date_min, date_max=date_max, graph_html=graph_html, bar_chart_html=bar_chart_html, pie_chart_html=pie_chart_html, sentiment_stats_html=sentiment_stats_html, action=action)
 
 @app.template_filter('dateformat')
 def dateformat(value, format='%B %d, %Y'):

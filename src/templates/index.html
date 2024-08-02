@@ -7,6 +7,7 @@
     <title>InsightNews Sentiment Analysis</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body.light-theme {
             background-color: #f8f9fa;
@@ -271,7 +272,9 @@
                 <div id="loading-progress" class="mt-2">0% Loaded</div>
             </div>
         </div>
-        <div id="articles-container">
+
+        <!-- Articles Section -->
+        <div id="articles-container" style="{% if action == 'analytics' %}display: none{% endif %}">
             {% if articles %}
             <h2 class="my-4">
                 {% if query and from_date and to_date %} Searched for "{{ query }}"
@@ -355,6 +358,72 @@
             </p>
             {% endif %}
         </div>
+
+        <!-- Analytics Section -->
+        <div id="analytics-section" style="{% if action != 'analytics' %}display: none{% endif %}">
+            {% if graph_html and bar_chart_html and pie_chart_html%}
+            <h2 class="my-4">
+                {% if query and from_date and to_date %} Analytics for "{{ query }}"
+                from {{ from_date|dateformat }} to {{ to_date|dateformat }} {% elif
+                query and from_date %} Searched for "{{ query }}" from {{
+                from_date|dateformat }} {% elif query and to_date %} Searched for "{{
+                query }}" up to {{ to_date|dateformat }} {% elif from_date and to_date
+                %} Searched from {{ from_date|dateformat }} to {{ to_date|dateformat
+                }} {% elif from_date %} Searched from {{ from_date|dateformat }} {%
+                elif to_date %} Searched up to {{ to_date|dateformat }} {% elif query
+                %} Searched for "{{ query }}" {% else %} Latest News {% endif %}
+            </h2>
+            <!-- Sentiment Trend Line Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <strong>Sentiment Trend Over Time</strong>
+                </div>
+                <div class="card-body">
+                    <div id="sentiment-trend">
+                        {{ graph_html | safe }}
+                    </div>
+                </div>
+            </div>
+            <br>
+
+            <!-- Sentiment Distribution Across Topics Bar Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <strong>Sentiment Distribution Across Topics</strong>
+                </div>
+                <div class="card-body">
+                    <div id="sentiment-topic-bar">
+                        {{ bar_chart_html | safe }}
+                    </div>
+                </div>
+            </div>
+            <br>
+            
+            <!-- Sentiment Classification Pie Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <strong>Sentiment Classification Distribution</strong>
+                </div>
+                <div class="card-body">
+                    <div id="sentiment-pie">
+                        {{ pie_chart_html | safe }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sentiment Classification Statistics Plot
+            <div class="card">
+                <div class="card-header">
+                    Sentiment Classification Statistics
+                </div>
+                <div class="card-body">
+                    <div id="sentiment-stats">
+                        {{ sentiment_stats_html | safe }}
+                    </div>
+                </div>
+            </div> -->
+            {% endif %}
+        </div>
     </div>
     <div class="theme-switch-wrapper">
         <i class="fas fa-sun theme-icon"></i>
@@ -399,6 +468,7 @@
                 card.classList.toggle("light-theme", theme !== "dark");
             });
             document.getElementById("theme-toggle").checked = theme === "dark";
+            updatePlotlyTheme(theme);
         }
         // Toggle theme between light and dark
         function toggleTheme() {
@@ -407,6 +477,49 @@
             localStorage.setItem("theme", theme);
             applyTheme(theme);
         }
+        // Update Plotly charts theme
+        function updatePlotlyTheme(theme) {
+            const layoutDark = {
+                paper_bgcolor: "#212529",
+                plot_bgcolor: "#212529",
+                font: { color: "#f8f9fa" },
+                xaxis: {
+                    gridcolor: '#444',
+                    linecolor: '#888',
+                    zerolinecolor: '#888'
+                },
+                yaxis: {
+                    gridcolor: '#444',
+                    linecolor: '#888',
+                    zerolinecolor: '#888'
+                }
+            };
+            const layoutLight = {
+                paper_bgcolor: "#f8f9fa",
+                plot_bgcolor: "#f8f9fa",
+                font: { color: "#212529" },
+                xaxis: {
+                    gridcolor: '#ddd',
+                    linecolor: '#aaa',
+                    zerolinecolor: '#aaa'
+                },
+                yaxis: {
+                    gridcolor: '#ddd',
+                    linecolor: '#aaa',
+                    zerolinecolor: '#aaa'
+                }
+            };
+            const layout = theme === "dark" ? layoutDark : layoutLight;
+
+            const charts = ['sentiment-trend', 'sentiment-topic-bar', 'sentiment-pie'];
+            charts.forEach(chartId => {
+                const chartDiv = document.getElementById(chartId);
+                if (chartDiv && chartDiv.data) {
+                    Plotly.relayout(chartDiv, layout);
+                }
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             const savedTheme = localStorage.getItem("theme") || "dark";
             applyTheme(savedTheme);
