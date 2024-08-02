@@ -32,6 +32,17 @@ def load_data(directory):
     dfs = [pd.read_csv(f) for f in files]
     return pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
 
+def extract_source_name(source):
+    if pd.isna(source):
+        return None
+    try:
+        source_dict = eval(source)
+        if isinstance(source_dict, dict):
+            return source_dict.get('name')
+    except:
+        return source
+    return None
+
 def preprocess_data(df):
     if df.empty:
         print("No data to preprocess.")
@@ -43,7 +54,6 @@ def preprocess_data(df):
     df.drop_duplicates(subset='url', keep='first', inplace=True)
     pattern = re.compile(r'image \d+ of \d+', re.IGNORECASE)
     df = df[~df['title'].apply(lambda x: bool(pattern.search(x)) if pd.notnull(x) else False)]
-
     after_dedup_count = len(df)
     print(f"Records after removing duplicates: {after_dedup_count} (Removed {initial_count - after_dedup_count})")
 
@@ -53,6 +63,32 @@ def preprocess_data(df):
 
     df['content'] = df['content'].fillna(df['title'])
     df['title'] = df['title'].fillna(df['content'])
+
+    # Extract source names
+    df['source'] = df['source'].apply(extract_source_name)
+    
+    # Save the unique source names to a CSV file
+    unique_sources = df['source'].dropna().unique()
+    unique_sources_df = pd.DataFrame(unique_sources, columns=['source'])
+    os.makedirs('data/processed/', exist_ok=True)
+    unique_sources_df.to_csv('data/processed/unique_sources.csv', index=False)
+    print(f"Saved unique source names to 'data/processed/unique_sources.csv'")
+    
+    # Function to combine published_at and publishedAt columns
+    def combine_published_at(df):
+        df['published_at_combined'] = df['published_at'].combine_first(df['publishedAt'])
+        df.drop(columns=['published_at', 'publishedAt'], inplace=True)
+        df.rename(columns={'published_at_combined': 'published_at'}, inplace=True)
+        return df
+    
+    # Combine published_at and publishedAt columns
+    df = combine_published_at(df)
+
+    # Convert published_at to datetime
+    df['published_at'] = pd.to_datetime(df['published_at'], errors='coerce')
+
+    # Sort by latest date in descending order
+    df = df.sort_values(by='published_at', ascending=False)
 
     stop_words = set(stopwords.words('english'))
 
