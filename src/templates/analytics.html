@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Analytics</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .container {
+            margin-top: 20px;
+        }
+
+        .card {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Sentiment Analysis Results</h1>
+        <h2>Query: {{ query }}</h2>
+        <h3>From: {{ from_date }} To: {{ to_date }}</h3>
+
+        <!-- Sentiment Trend Line Chart -->
+        <div class="card">
+            <div class="card-header">
+                Sentiment Trend Over Time
+            </div>
+            <div class="card-body">
+                <div id="sentiment-trend">
+                    {{ graph_html | safe }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sentiment Distribution Across Topics Bar Chart -->
+        <div class="card">
+            <div class="card-header">
+                Sentiment Distribution Across Topics
+            </div>
+            <div class="card-body">
+                <div id="sentiment-topic-bar">
+                    {{ bar_chart_html | safe }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sentiment Classification Statistics -->
+        <div class="card">
+            <div class="card-header">
+                Sentiment Classification Statistics
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li>Total Articles: {{ sentiment_stats.total_articles }}</li>
+                    <li>Positive: {{ sentiment_stats.positive }}</li>
+                    <li>Neutral: {{ sentiment_stats.neutral }}</li>
+                    <li>Negative: {{ sentiment_stats.negative }}</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Back to Search Button -->
+        <a href="{{ url_for('index') }}" class="btn btn-primary mt-3">Back to Search</a>
+    </div>
+</body>
+
+</html>

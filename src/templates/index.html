@@ -259,7 +259,8 @@
                 </div>
             </div>
             <div class="form-group col-md-12 d-flex justify-content-center">
-                <button type="submit" class="btn btn-primary">Analyze</button>
+                <button type="submit" name="action" value="search" class="btn btn-primary mr-2">Search Articles</button>
+                <button type="submit" name="action" value="analytics" class="btn btn-secondary">Get Analytics</button>
             </div>
         </form>
         <div id="loading-overlay" class="loading-overlay" style="display: none">
@@ -283,7 +284,6 @@
                 elif to_date %} Searched up to {{ to_date|dateformat }} {% elif query
                 %} Searched for "{{ query }}" {% else %} Latest News {% endif %}
             </h2>
-
             <div class="row">
                 {% for article in articles %}
                 <div class="col-md-4 mb-4">
@@ -292,12 +292,10 @@
                             <img src="{{ article.image }}" class="card-img-top" alt="Image for {{ article.topic }}" />
                             <div class="card-body">
                                 <h5 class="card-title">{{ article.title }}</h5>
-                                <p class="card-text">
-                                    <strong>Summary:</strong> {{ article.bart_summary }}
-                                </p>
-                                <p class="card-text">
-                                    <strong>Sentiment: {{ article.roberta_sentiment }}</strong>
-                                </p>
+                                <p class="card-text"><strong>Summary:</strong> {{ article.bart_summary }}</p>
+                                <p class="card-text"><strong>Sentiment:</strong> {{ article.roberta_sentiment }}</p>
+                                <p class="card-text"><strong>Published on:</strong> {{ article.published_at|dateformat
+                                    }}</p>
                                 <a href="{{ article.url }}" class="btn btn-primary mt-auto" target="_blank">Read
                                     more</a>
                             </div>
@@ -366,7 +364,6 @@
         </div>
         <i class="fas fa-moon theme-icon"></i>
     </div>
-
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -376,12 +373,10 @@
             $("#loading-overlay").fadeIn();
             simulateLoading();
         }
-
         // Hide the loading placeholder
         function hideLoading() {
             $("#loading-overlay").fadeOut();
         }
-
         // Simulate loading progress
         function simulateLoading() {
             let percentage = 0;
@@ -394,7 +389,6 @@
                 }
             }, 50);
         }
-
         // Apply theme based on saved preference
         function applyTheme(theme) {
             const body = document.body;
@@ -406,7 +400,6 @@
             });
             document.getElementById("theme-toggle").checked = theme === "dark";
         }
-
         // Toggle theme between light and dark
         function toggleTheme() {
             const theme =
@@ -414,14 +407,12 @@
             localStorage.setItem("theme", theme);
             applyTheme(theme);
         }
-
         document.addEventListener("DOMContentLoaded", () => {
             const savedTheme = localStorage.getItem("theme") || "dark";
             applyTheme(savedTheme);
             document
                 .getElementById("theme-toggle")
                 .addEventListener("change", toggleTheme);
-
             // Get the current page from data attribute and set the page input
             const currentPageElement = document.querySelector(
                 ".pagination .page-item.active"
@@ -430,27 +421,23 @@
                 const currentPage = currentPageElement.dataset.currentPage;
                 document.getElementById("page-input").value = currentPage;
             }
-
             // Set dynamic default dates
             document.getElementById("from_date").value =
                 document.getElementById("from_date").value || "2024-06-01";
             document.getElementById("to_date").value =
                 document.getElementById("to_date").value || "2024-06-30";
         });
-
         // Form submission event handler
         $("form").on("submit", function () {
             showLoading();
             // Allow the form to submit naturally
         });
-
         // Pagination link click event handler
         $(document).on("click", ".page-nav", function (e) {
             e.preventDefault();
             showLoading();
             window.location.href = $(this).attr("href");
         });
-
         // Update page input change event handler to include max page validation
         $("#page-input").on("change", function () {
             let page = $(this).val();
@@ -462,7 +449,6 @@
                 "{{ url_for('index', query=query if query else None, from_date=from_date if from_date else None, to_date=to_date if to_date else None) }}?page=" +
                 page;
         });
-
         // Ensure loading placeholder is hidden after page load
         $(window).on("load", function () {
             hideLoading();

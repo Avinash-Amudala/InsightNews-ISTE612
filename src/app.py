@@ -1,13 +1,14 @@
 import os
-from flask import Flask, render_template, request
 import pandas as pd
+from flask import Flask, render_template, request
 from flask_caching import Cache
 from datetime import datetime
+import plotly.express as px
+import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.cluster import KMeans
-import joblib  # For loading models
 
 app = Flask(__name__)
 
@@ -66,10 +67,63 @@ def index():
     filtered_articles = pd.DataFrame()
 
     if request.method == 'POST':
+        action = request.form.get('action')
         query = request.form.get('query', '')
         from_date = request.form.get('from_date')
         to_date = request.form.get('to_date')
         sentiment = request.form.get('sentiment', '')
+
+        if action == 'analytics':
+            # Prepare data for sentiment trend visualization
+            filtered_articles = articles.copy()
+
+            if query:
+                query_vector = tfidf_vectorizer.transform([query])
+                similarities = cosine_similarity(query_vector, tfidf_matrix).flatten()
+                most_similar_indices = similarities.argsort()[::-1]
+                filtered_articles = filtered_articles.iloc[most_similar_indices]
+
+            if from_date:
+                from_date = pd.to_datetime(from_date, errors='coerce')
+                if from_date.tzinfo is None:
+                    from_date = from_date.tz_localize('UTC')
+                filtered_articles = filtered_articles[filtered_articles['published_at'] >= from_date]
+
+            if to_date:
+                to_date = pd.to_datetime(to_date, errors='coerce')
+                if to_date.tzinfo is None:
+                    to_date = to_date.tz_localize('UTC')
+                filtered_articles = filtered_articles[filtered_articles['published_at'] <= to_date]
+
+            if sentiment:
+                filtered_articles = filtered_articles[filtered_articles['roberta_sentiment'].str.lower() == sentiment.lower()]
+
+            trend_data = filtered_articles.copy()
+            trend_data['published_at'] = pd.to_datetime(trend_data['published_at'])
+            trend_data.set_index('published_at', inplace=True)
+            sentiment_counts = trend_data.resample('D')['roberta_sentiment'].value_counts().unstack().fillna(0)
+
+            fig = px.line(sentiment_counts, x=sentiment_counts.index, y=sentiment_counts.columns,
+                          labels={'value': 'Sentiment Count', 'published_at': 'Date'},
+                          title='Sentiment Trend Over Time')
+            graph_html = fig.to_html(full_html=False)
+
+            # Detailed exploration of sentiment across topics
+            topic_sentiments = filtered_articles.groupby('topic')['roberta_sentiment'].value_counts().unstack().fillna(0)
+
+            # Statistics on sentiment classification accuracy
+            sentiment_stats = {
+                'total_articles': len(filtered_articles),
+                'positive': (filtered_articles['roberta_sentiment'] == 'positive').sum(),
+                'neutral': (filtered_articles['roberta_sentiment'] == 'neutral').sum(),
+                'negative': (filtered_articles['roberta_sentiment'] == 'negative').sum()
+            }
+
+            fig_bar = px.bar(topic_sentiments, barmode='group', title='Sentiment Distribution Across Topics')
+            bar_chart_html = fig_bar.to_html(full_html=False)
+
+            return render_template('analytics.html', query=query, from_date=from_date, to_date=to_date, sentiment=sentiment,
+                                   graph_html=graph_html, bar_chart_html=bar_chart_html, sentiment_stats=sentiment_stats)
     else:
         query = request.args.get('query', '')
         from_date = request.args.get('from_date', '')
