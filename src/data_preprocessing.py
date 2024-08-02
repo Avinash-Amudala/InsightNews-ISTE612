@@ -12,7 +12,19 @@ from sklearn.metrics import classification_report
 from sklearn.cluster import KMeans
 from collections import defaultdict
 import gc
+from nltk.stem import WordNetLemmatizer
+import nltk
+import joblib  # For saving models
 from tqdm import tqdm
+
+# Download necessary NLTK data
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('wordnet')
+nltk.download('averaged_perceptron_tagger')
+
+# Initialize NLP tools
+lemmatizer = WordNetLemmatizer()
 
 def load_data(directory):
     files = [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('.csv')]
@@ -29,6 +41,9 @@ def preprocess_data(df):
     print(f"Initial record count: {initial_count}")
 
     df.drop_duplicates(subset='url', keep='first', inplace=True)
+    pattern = re.compile(r'image \d+ of \d+', re.IGNORECASE)
+    df = df[~df['title'].apply(lambda x: bool(pattern.search(x)) if pd.notnull(x) else False)]
+
     after_dedup_count = len(df)
     print(f"Records after removing duplicates: {after_dedup_count} (Removed {initial_count - after_dedup_count})")
 
@@ -43,8 +58,9 @@ def preprocess_data(df):
 
     def clean_content(content):
         tokens = word_tokenize(content.lower())
-        tokens = [word for word in tokens if word.isalpha() and word not in stop_words]
-        return ' '.join(tokens)
+        tokens = [word for word in tokens if word.isalpha()]  # Keep all words, including stop words
+        lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
+        return ' '.join(lemmatized_tokens)
 
     df['cleaned_content'] = df['content'].apply(clean_content)
     df['content_length'] = df['cleaned_content'].apply(lambda x: len(x.split()))
@@ -55,12 +71,6 @@ def preprocess_data(df):
 
     # Drop duplicates based on the 'cleaned_content' column
     df = df.drop_duplicates('cleaned_content')
-
-    # Define the pattern to search for in the 'title' column
-    pattern = re.compile(r'image \d+ of \d+', re.IGNORECASE)
-
-    # Filter out rows where the 'title' matches the pattern
-    df = df[~df['title'].apply(lambda x: bool(pattern.search(x)) if pd.notnull(x) else False)]
 
     final_count = len(df)
     print(f"Preprocessed data from {initial_count} to {final_count} records.")
@@ -88,30 +98,25 @@ def vector_space_model(df):
     print(f"TF-IDF Matrix shape: {tfidf_matrix.shape}")
     return tfidf_matrix, vectorizer
 
-def text_classification(df):
-    # Ensure there are no NaN values in the 'cleaned_content' or 'category' columns
+def text_classification(df, vectorizer):
     df = df.dropna(subset=['cleaned_content', 'category'])
-
-    vectorizer = TfidfVectorizer()
     X = vectorizer.fit_transform(df['cleaned_content'])
     y = df['category']
-
-    # Ensure that y does not contain any NaN values
     X = X[~y.isna()]
     y = y.dropna()
-
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     classifier = MultinomialNB()
     classifier.fit(X_train, y_train)
     y_pred = classifier.predict(X_test)
     print(classification_report(y_test, y_pred))
+    return classifier
 
-def text_clustering(df):
-    vectorizer = TfidfVectorizer()
+def text_clustering(df, vectorizer):
     X = vectorizer.fit_transform(df['cleaned_content'])
     kmeans = KMeans(n_clusters=5, random_state=42)
     df['cluster'] = kmeans.fit_predict(X)
     print(f"Cluster distribution:\n{df['cluster'].value_counts()}")
+    return kmeans
 
 def save_data(df, filename):
     if df.empty:
@@ -125,6 +130,10 @@ def save_data(df, filename):
 if __name__ == "__main__":
     raw_data_directory = 'data/raw/'
     processed_data_filename = 'data/processed/articles_cleaned.csv'
+    tfidf_vectorizer_filename = 'models/tfidf_vectorizer.pkl'
+    tfidf_matrix_filename = 'models/tfidf_matrix.pkl'
+    classifier_filename = 'models/classifier.pkl'
+    kmeans_filename = 'models/kmeans.pkl'
 
     print("Loading raw data...")
     df = load_data(raw_data_directory)
@@ -142,13 +151,22 @@ if __name__ == "__main__":
         tfidf_matrix, tfidf_vectorizer = vector_space_model(df)
 
         print("Performing Text Classification...")
-        text_classification(df)
+        classifier = text_classification(df, tfidf_vectorizer)
 
         print("Performing Text Clustering...")
-        text_clustering(df)
+        kmeans = text_clustering(df, tfidf_vectorizer)
 
         print("Saving cleaned data...")
         save_data(df, processed_data_filename)
+
+        print("Saving models...")
+        # Ensure the 'models' directory exists
+        os.makedirs(os.path.dirname(tfidf_vectorizer_filename), exist_ok=True)
+        joblib.dump(tfidf_vectorizer, tfidf_vectorizer_filename)
+        joblib.dump(tfidf_matrix, tfidf_matrix_filename)
+        joblib.dump(classifier, classifier_filename)
+        joblib.dump(kmeans, kmeans_filename)
+
     else:
         print("No data loaded. Skipping preprocessing and saving steps.")
     print("Data preprocessing complete.")
