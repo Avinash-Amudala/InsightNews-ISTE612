@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, flash
 from flask_caching import Cache
 from datetime import datetime
 import plotly.express as px
@@ -12,6 +12,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.cluster import KMeans
 
 app = Flask(__name__)
+app.secret_key = 'supersecretkey'
 
 # Configuring cache
 cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
@@ -107,7 +108,7 @@ def index():
     sentiment = ''
     sentiment_model = 'roberta_sentiment'
     filtered_articles = pd.DataFrame()
-    total = 0
+    total = len(articles)
 
     graph_html = None
     bar_chart_html = None
@@ -131,9 +132,13 @@ def index():
         sentiment_model = request.form.get('sentiment_model', 'roberta_sentiment')
 
         filtered_articles = filter_articles(query, author, title, source, from_date, to_date, sentiment, sentiment_model)
-        total = len(filtered_articles)
+
+        if filtered_articles.empty:
+            flash('No articles found matching your search criteria<br>Please try using Advanced Search', 'danger')
+            return render_template('index.html', articles=[], pagination=None, query=query, author=author, title=title, source=source, from_date=from_date, to_date=to_date, sentiment=sentiment, sentiment_model=sentiment_model, date_min=date_min, date_max=date_max, graph_html=None, bar_chart_html=None, pie_chart_html=None, source_html=None, author_html=None, geo_html=None, length_html=None, topic_html=None, action=action, total=0)
 
         if action == 'analytics':
+            total = len(filtered_articles)
             # Debugging: Print filtered articles count
             print(f"Filtered Articles Count: {len(filtered_articles)}")
             print(f"Filtered Articles Sentiments: {filtered_articles[sentiment_model].value_counts()}")
@@ -218,13 +223,17 @@ def index():
         sentiment_model = request.args.get('sentiment_model', 'roberta_sentiment')
 
         filtered_articles = filter_articles(query, author, title, source, from_date, to_date, sentiment, sentiment_model)
-        total = len(filtered_articles)
+
+        if filtered_articles.empty:
+            flash('No articles found matching your search criteria<br>Please try using Advanced Search', 'danger')
+            return render_template('index.html', articles=[], pagination=None, query=query, author=author, title=title, source=source, from_date=from_date, to_date=to_date, sentiment=sentiment, sentiment_model=sentiment_model, date_min=date_min, date_max=date_max, graph_html=None, bar_chart_html=None, pie_chart_html=None, source_html=None, author_html=None, geo_html=None, length_html=None, topic_html=None, action=action, total=0)
 
     # Construct cache key including page number
     cache_key = f"{query or ''}_{author or ''}_{title or ''}_{source or ''}_{from_date or ''}_{to_date or ''}_{sentiment or ''}_{sentiment_model or ''}_{page}"
     cached_articles = cache.get(cache_key)
 
     if cached_articles is None:
+        total = len(filtered_articles)
         start = (page - 1) * per_page
         end = start + per_page
         current_articles = filtered_articles.iloc[start:end].copy()

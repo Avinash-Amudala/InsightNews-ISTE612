@@ -387,10 +387,19 @@
                 </ul>
             </nav>
             {% else %}
-            <p class="text-center">
-                No articles to display. Please use the search form above to find
-                articles.
-            </p>
+            <div class="d-flex justify-content-center">
+                <div>
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} text-center" role="alert">
+                        {{ message|safe }}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
             {% endif %}
         </div>
 
@@ -514,6 +523,19 @@
                 </div>
             </div>
             {% endif %}
+            <div class="d-flex justify-content-center">
+                <div>
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} text-center" role="alert">
+                        {{ message|safe }}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
         </div>
     </div>
     <div class="theme-switch-wrapper">
