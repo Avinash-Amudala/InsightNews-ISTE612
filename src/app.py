@@ -132,7 +132,8 @@ def index():
         sentiment_model = request.form.get('sentiment_model', 'roberta_sentiment')
 
         filtered_articles = filter_articles(query, author, title, source, from_date, to_date, sentiment, sentiment_model)
-
+        total = len(filtered_articles)
+        
         if filtered_articles.empty:
             flash('No articles found matching your search criteria<br>Please try using Advanced Search', 'danger')
             return render_template('index.html', articles=[], pagination=None, query=query, author=author, title=title, source=source, from_date=from_date, to_date=to_date, sentiment=sentiment, sentiment_model=sentiment_model, date_min=date_min, date_max=date_max, graph_html=None, bar_chart_html=None, pie_chart_html=None, source_html=None, author_html=None, geo_html=None, length_html=None, topic_html=None, action=action, total=0)
