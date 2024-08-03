@@ -271,7 +271,7 @@
         </div>
         <form method="POST" action="{{ url_for('index') }}" class="my-4">
             <div class="form-row">
-                <div class="form-group col-md-6">
+                <div class="form-group col-md-4">
                     <label for="query">Search (Topic, Author, Title, Source):</label>
                     <input type="text" class="form-control" id="query" name="query" placeholder="Search..."
                         value="{{ query }}" />
@@ -293,6 +293,15 @@
                         <option value="positive" {% if sentiment=='positive' %}selected{% endif %}>Positive</option>
                         <option value="neutral" {% if sentiment=='neutral' %}selected{% endif %}>Neutral</option>
                         <option value="negative" {% if sentiment=='negative' %}selected{% endif %}>Negative</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-2">
+                    <label for="sentiment_model">Sentiment Model:</label>
+                    <select class="form-control" id="sentiment_model" name="sentiment_model">
+                        <option value="roberta_sentiment" {% if sentiment_model=='roberta_sentiment' %}selected{% endif
+                            %}>Roberta Sentiment</option>
+                        <option value="distilbert_sentiment" {% if sentiment_model=='distilbert_sentiment' %}selected{%
+                            endif %}>DistilBERT Sentiment</option>
                     </select>
                 </div>
             </div>
@@ -811,7 +820,9 @@
             document.getElementById("to_date").value =
                 document.getElementById("to_date").value || "2024-06-30";
             //sentiment
+            const sentimentSelect = document.getElementById("sentiment");
             const sentimentSelectAdv = document.getElementById("sentiment-adv");
+            const sentimentModelSelect = document.getElementById("sentiment_model");
             const sentimentModelSelectAdv = document.getElementById("sentiment_model-adv");
 
             const robertaOptions = [
@@ -827,6 +838,19 @@
                 { value: "negative", text: "Negative" },
             ];
 
+            function updateSentimentOptions() {
+                const selectedModel = sentimentModelSelect.value;
+                sentimentSelect.innerHTML = "";
+
+                let options = selectedModel === "distilbert_sentiment" ? distilbertOptions : robertaOptions;
+                options.forEach(option => {
+                    let opt = document.createElement("option");
+                    opt.value = option.value;
+                    opt.textContent = option.text;
+                    sentimentSelect.appendChild(opt);
+                });
+            }
+
             function updateSentimentOptionsAdv() {
                 const selectedModel = sentimentModelSelectAdv.value;
                 sentimentSelectAdv.innerHTML = "";
@@ -840,7 +864,9 @@
                 });
             }
 
+            sentimentModelSelect.addEventListener("change", updateSentimentOptions);
             sentimentModelSelectAdv.addEventListener("change", updateSentimentOptionsAdv);
+            updateSentimentOptions();
             updateSentimentOptionsAdv();
         });
         // Form submission event handler
