@@ -331,7 +331,7 @@
                                 <h5 class="card-title">{{ article.title }}</h5>
                                 <p class="card-text capitalize-text"><strong>Summary:</strong> {{ article.bart_summary
                                     }}</p>
-                                <p class="card-text"><strong>Sentiment:</strong> {{ article.roberta_sentiment }}</p>
+                                <p class="card-text"><strong>Sentiment:</strong> {{ article[sentiment_model] }}</p>
                                 <p class="card-text"><strong>Published on:</strong> {{ article.published_at|dateformat
                                     }}</p>
                                 <a href="{{ article.url }}" class="btn btn-primary mt-auto" target="_blank">Read
