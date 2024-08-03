@@ -287,21 +287,21 @@
                         value="{{ to_date or '2024-06-30' }}" />
                 </div>
                 <div class="form-group col-md-1.5">
-                    <label for="sentiment">Sentiment:</label>
-                    <select class="form-control" id="sentiment" name="sentiment">
-                        <option value="">All</option>
-                        <option value="positive" {% if sentiment=='positive' %}selected{% endif %}>Positive</option>
-                        <option value="neutral" {% if sentiment=='neutral' %}selected{% endif %}>Neutral</option>
-                        <option value="negative" {% if sentiment=='negative' %}selected{% endif %}>Negative</option>
-                    </select>
-                </div>
-                <div class="form-group col-md-1.5">
                     <label for="sentiment_model">Sentiment Model:</label>
                     <select class="form-control" id="sentiment_model" name="sentiment_model">
                         <option value="roberta_sentiment" {% if sentiment_model=='roberta_sentiment' %}selected{% endif
                             %}>RoBERTa</option>
                         <option value="distilbert_sentiment" {% if sentiment_model=='distilbert_sentiment' %}selected{%
                             endif %}>DistilBERT</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-1.5">
+                    <label for="sentiment">Sentiment:</label>
+                    <select class="form-control" id="sentiment" name="sentiment">
+                        <option value="">All</option>
+                        <option value="positive" {% if sentiment=='positive' %}selected{% endif %}>Positive</option>
+                        <option value="neutral" {% if sentiment=='neutral' %}selected{% endif %}>Neutral</option>
+                        <option value="negative" {% if sentiment=='negative' %}selected{% endif %}>Negative</option>
                     </select>
                 </div>
             </div>
@@ -607,6 +607,15 @@
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
+                                <label for="sentiment_model-adv">Sentiment Model:</label>
+                                <select class="form-control" id="sentiment_model-adv" name="sentiment_model">
+                                    <option value="roberta_sentiment" {% if sentiment_model=='roberta_sentiment'
+                                        %}selected{% endif %}>RoBERTa Model</option>
+                                    <option value="distilbert_sentiment" {% if sentiment_model=='distilbert_sentiment'
+                                        %}selected{% endif %}>DistilBERT Model</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
                                 <label for="sentiment-adv">Sentiment:</label>
                                 <select class="form-control" id="sentiment-adv" name="sentiment">
                                     <option value="">All</option>
@@ -616,15 +625,6 @@
                                     </option>
                                     <option value="negative" {% if sentiment=='negative' %}selected{% endif %}>Negative
                                     </option>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="sentiment_model-adv">Sentiment Model:</label>
-                                <select class="form-control" id="sentiment_model-adv" name="sentiment_model">
-                                    <option value="roberta_sentiment" {% if sentiment_model=='roberta_sentiment'
-                                        %}selected{% endif %}>RoBERTa Model</option>
-                                    <option value="distilbert_sentiment" {% if sentiment_model=='distilbert_sentiment'
-                                        %}selected{% endif %}>DistilBERT Model</option>
                                 </select>
                             </div>
                         </div>
