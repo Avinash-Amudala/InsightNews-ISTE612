@@ -318,6 +318,8 @@
                 }} {% elif from_date %} Searched from {{ from_date|dateformat }} {%
                 elif to_date %} Searched up to {{ to_date|dateformat }} {% elif query
                 %} Searched for "{{ query }}" {% else %} Latest News {% endif %}
+                <br>
+                <small class="text-muted">({{ total }} articles found)</small>
             </h2>
             <div class="row">
                 {% for article in articles %}
@@ -406,6 +408,8 @@
                 }} {% elif from_date %} Searched from {{ from_date|dateformat }} {%
                 elif to_date %} Searched up to {{ to_date|dateformat }} {% elif query
                 %} Searched for "{{ query }}" {% else %} Latest News {% endif %}
+                <br>
+                <small class="text-muted">({{ total }} articles found)</small>
             </h2>
             <!-- Sentiment Trend Line Chart -->
             <div class="card">

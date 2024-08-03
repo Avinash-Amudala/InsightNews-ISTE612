@@ -107,6 +107,7 @@ def index():
     sentiment = ''
     sentiment_model = 'roberta_sentiment'
     filtered_articles = pd.DataFrame()
+    total = 0
 
     graph_html = None
     bar_chart_html = None
@@ -130,6 +131,7 @@ def index():
         sentiment_model = request.form.get('sentiment_model', 'roberta_sentiment')
 
         filtered_articles = filter_articles(query, author, title, source, from_date, to_date, sentiment, sentiment_model)
+        total = len(filtered_articles)
 
         if action == 'analytics':
             # Debugging: Print filtered articles count
@@ -216,13 +218,13 @@ def index():
         sentiment_model = request.args.get('sentiment_model', 'roberta_sentiment')
 
         filtered_articles = filter_articles(query, author, title, source, from_date, to_date, sentiment, sentiment_model)
+        total = len(filtered_articles)
 
     # Construct cache key including page number
     cache_key = f"{query or ''}_{author or ''}_{title or ''}_{source or ''}_{from_date or ''}_{to_date or ''}_{sentiment or ''}_{sentiment_model or ''}_{page}"
     cached_articles = cache.get(cache_key)
 
     if cached_articles is None:
-        total = len(filtered_articles)
         start = (page - 1) * per_page
         end = start + per_page
         current_articles = filtered_articles.iloc[start:end].copy()
@@ -246,7 +248,7 @@ def index():
 
     current_articles, pagination = cached_articles
 
-    return render_template('index.html', articles=current_articles, pagination=pagination, query=query, author=author, title=title, source=source, from_date=from_date, to_date=to_date, sentiment=sentiment, sentiment_model=sentiment_model, date_min=date_min, date_max=date_max, graph_html=graph_html, bar_chart_html=bar_chart_html, pie_chart_html=pie_chart_html, source_html=source_html, author_html=author_html, geo_html=geo_html, length_html=length_html, topic_html=topic_html, action=action)
+    return render_template('index.html', articles=current_articles, pagination=pagination, query=query, author=author, title=title, source=source, from_date=from_date, to_date=to_date, sentiment=sentiment, sentiment_model=sentiment_model, date_min=date_min, date_max=date_max, graph_html=graph_html, bar_chart_html=bar_chart_html, pie_chart_html=pie_chart_html, source_html=source_html, author_html=author_html, geo_html=geo_html, length_html=length_html, topic_html=topic_html, action=action, total=total)
 
 @app.template_filter('dateformat')
 def dateformat(value, format='%B %d, %Y'):
