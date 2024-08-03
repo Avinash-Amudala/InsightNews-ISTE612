@@ -271,7 +271,7 @@
         </div>
         <form method="POST" action="{{ url_for('index') }}" class="my-4">
             <div class="form-row">
-                <div class="form-group col-md-4">
+                <div class="form-group col-md-5">
                     <label for="query">Search (Topic, Author, Title, Source):</label>
                     <input type="text" class="form-control" id="query" name="query" placeholder="Search..."
                         value="{{ query }}" />
@@ -286,7 +286,7 @@
                     <input type="date" class="form-control" id="to_date" name="to_date"
                         value="{{ to_date or '2024-06-30' }}" />
                 </div>
-                <div class="form-group col-md-2">
+                <div class="form-group col-md-1.5">
                     <label for="sentiment">Sentiment:</label>
                     <select class="form-control" id="sentiment" name="sentiment">
                         <option value="">All</option>
@@ -295,13 +295,13 @@
                         <option value="negative" {% if sentiment=='negative' %}selected{% endif %}>Negative</option>
                     </select>
                 </div>
-                <div class="form-group col-md-2">
+                <div class="form-group col-md-1.5">
                     <label for="sentiment_model">Sentiment Model:</label>
                     <select class="form-control" id="sentiment_model" name="sentiment_model">
                         <option value="roberta_sentiment" {% if sentiment_model=='roberta_sentiment' %}selected{% endif
-                            %}>Roberta Sentiment</option>
+                            %}>RoBERTa</option>
                         <option value="distilbert_sentiment" {% if sentiment_model=='distilbert_sentiment' %}selected{%
-                            endif %}>DistilBERT Sentiment</option>
+                            endif %}>DistilBERT</option>
                     </select>
                 </div>
             </div>
@@ -622,9 +622,9 @@
                                 <label for="sentiment_model-adv">Sentiment Model:</label>
                                 <select class="form-control" id="sentiment_model-adv" name="sentiment_model">
                                     <option value="roberta_sentiment" {% if sentiment_model=='roberta_sentiment'
-                                        %}selected{% endif %}>Roberta Sentiment</option>
+                                        %}selected{% endif %}>RoBERTa Model</option>
                                     <option value="distilbert_sentiment" {% if sentiment_model=='distilbert_sentiment'
-                                        %}selected{% endif %}>DistilBERT Sentiment</option>
+                                        %}selected{% endif %}>DistilBERT Model</option>
                                 </select>
                             </div>
                         </div>
