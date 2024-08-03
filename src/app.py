@@ -62,8 +62,10 @@ def filter_articles(query, author, title, source, from_date, to_date, sentiment,
     if query:
         query_vector = tfidf_vectorizer.transform([query])
         similarities = cosine_similarity(query_vector, tfidf_matrix).flatten()
-        most_similar_indices = similarities.argsort()[::-1]
-        filtered_articles = filtered_articles.iloc[most_similar_indices]
+        threshold = 0.1  # Set a threshold for filtering articles
+        filtered_articles = filtered_articles.iloc[similarities > threshold]
+        similarities = similarities[similarities > threshold]
+        filtered_articles = filtered_articles.iloc[similarities.argsort()[::-1]]
 
     if author:
         filtered_articles = filtered_articles[filtered_articles['author'].str.contains(author, case=False, na=False)]
