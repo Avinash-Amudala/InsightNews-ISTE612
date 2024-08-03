@@ -186,6 +186,44 @@
             text-decoration: underline;
         }
 
+        .theme.light-theme {
+            background-color: #ffffff;
+            color: #212529;
+        }
+
+        .theme.dark-theme {
+            background-color: #343a40;
+            color: #f8f9fa;
+        }
+
+        .theme .modal-header,
+        .theme .modal-body {
+            border-color: transparent;
+        }
+
+        .theme.dark-theme .modal-header,
+        .theme.dark-theme .modal-body {
+            border-color: #454d55;
+        }
+
+        .theme .modal-header .close span {
+            color: inherit;
+        }
+
+        .btn-custom {
+            background-color: slateblue;
+            color: white;
+        }
+
+        .btn-custom:hover {
+            background-color: darkslateblue;
+            color: white;
+        }
+
+        .capitalize-text {
+            text-transform: capitalize;
+        }
+
         .animated-text {
             color: #00ffe5;
             font-weight: bold;
@@ -260,9 +298,9 @@
             </div>
             <div class="form-group col-md-12 d-flex justify-content-center">
                 <button type="submit" name="action" value="search" class="btn btn-primary mr-2">Search Articles</button>
-                <button type="submit" name="action" value="analytics" class="btn btn-secondary mr-2">Get
+                <button type="submit" name="action" value="analytics" class="btn btn-info mr-2">Get
                     Analytics</button>
-                <button type="button" class="btn btn-info" data-toggle="modal"
+                <button type="button" class="btn btn-custom" data-toggle="modal"
                     data-target="#advancedSearchModal">Advanced Search</button>
             </div>
         </form>
@@ -289,7 +327,8 @@
                             <img src="{{ article.image }}" class="card-img-top" alt="Image for {{ article.topic }}" />
                             <div class="card-body">
                                 <h5 class="card-title">{{ article.title }}</h5>
-                                <p class="card-text"><strong>Summary:</strong> {{ article.bart_summary }}</p>
+                                <p class="card-text capitalize-text"><strong>Summary:</strong> {{ article.bart_summary
+                                    }}</p>
                                 <p class="card-text"><strong>Sentiment:</strong> {{ article.roberta_sentiment }}</p>
                                 <p class="card-text"><strong>Published on:</strong> {{ article.published_at|dateformat
                                     }}</p>
@@ -485,20 +524,20 @@
     <!-- Advanced Search Modal -->
     <div class="modal fade" id="advancedSearchModal" tabindex="-1" role="dialog"
         aria-labelledby="advancedSearchModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content theme">
                 <div class="modal-header">
                     <h5 class="modal-title" id="advancedSearchModalLabel">Advanced Search</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
                     <form method="POST" action="{{ url_for('index') }}">
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label for="query">Search Query:</label>
-                                <input type="text" class="form-control" id="query" name="query" placeholder="Search..."
+                                <label for="query">Keyword:</label>
+                                <input type="text" class="form-control" id="query" name="query" placeholder="Keyword"
                                     value="{{ query }}">
                             </div>
                             <div class="form-group col-md-6">
@@ -533,8 +572,8 @@
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label for="sentiment">Sentiment:</label>
-                                <select class="form-control" id="sentiment" name="sentiment">
+                                <label for="sentiment-adv">Sentiment:</label>
+                                <select class="form-control" id="sentiment-adv" name="sentiment">
                                     <option value="">All</option>
                                     <option value="positive" {% if sentiment=='positive' %}selected{% endif %}>Positive
                                     </option>
@@ -545,8 +584,8 @@
                                 </select>
                             </div>
                             <div class="form-group col-md-6">
-                                <label for="sentiment_model">Sentiment Model:</label>
-                                <select class="form-control" id="sentiment_model" name="sentiment_model">
+                                <label for="sentiment_model-adv">Sentiment Model:</label>
+                                <select class="form-control" id="sentiment_model-adv" name="sentiment_model">
                                     <option value="roberta_sentiment" {% if sentiment_model=='roberta_sentiment'
                                         %}selected{% endif %}>Roberta Sentiment</option>
                                     <option value="distilbert_sentiment" {% if sentiment_model=='distilbert_sentiment'
@@ -560,8 +599,8 @@
                                     Articles</button>
                             </div>
                             <div class="col-md-6">
-                                <button type="submit" name="action" value="analytics"
-                                    class="btn btn-secondary w-100">Get Analytics</button>
+                                <button type="submit" name="action" value="analytics" class="btn btn-info w-100">Get
+                                    Analytics</button>
                             </div>
                         </div>
                     </form>
@@ -573,15 +612,15 @@
     <!-- Learn More Modal -->
     <div class="modal fade" id="learnMoreModal" tabindex="-1" role="dialog" aria-labelledby="learnMoreModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content theme">
                 <div class="modal-header">
                     <h5 class="modal-title" id="learnMoreModalLabel">How to Use</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
                     <p>You can search for articles using a variety of filters including:</p>
                     <ul>
                         <li><strong>Keyword:</strong> Search for specific words or phrases within the articles to find
@@ -669,9 +708,9 @@
             const body = document.body;
             body.classList.toggle("dark-theme", theme === "dark");
             body.classList.toggle("light-theme", theme !== "dark");
-            document.querySelectorAll(".card").forEach((card) => {
-                card.classList.toggle("dark-theme", theme === "dark");
-                card.classList.toggle("light-theme", theme !== "dark");
+            document.querySelectorAll(".card, .theme").forEach((element) => {
+                element.classList.toggle("dark-theme", theme === "dark");
+                element.classList.toggle("light-theme", theme !== "dark");
             });
             document.getElementById("theme-toggle").checked = theme === "dark";
             updatePlotlyTheme(theme);
@@ -745,6 +784,38 @@
                 document.getElementById("from_date").value || "2024-06-01";
             document.getElementById("to_date").value =
                 document.getElementById("to_date").value || "2024-06-30";
+            //sentiment
+            const sentimentSelectAdv = document.getElementById("sentiment-adv");
+            const sentimentModelSelectAdv = document.getElementById("sentiment_model-adv");
+
+            const robertaOptions = [
+                { value: "", text: "All" },
+                { value: "positive", text: "Positive" },
+                { value: "neutral", text: "Neutral" },
+                { value: "negative", text: "Negative" },
+            ];
+
+            const distilbertOptions = [
+                { value: "", text: "All" },
+                { value: "positive", text: "Positive" },
+                { value: "negative", text: "Negative" },
+            ];
+
+            function updateSentimentOptionsAdv() {
+                const selectedModel = sentimentModelSelectAdv.value;
+                sentimentSelectAdv.innerHTML = "";
+
+                let options = selectedModel === "distilbert_sentiment" ? distilbertOptions : robertaOptions;
+                options.forEach(option => {
+                    let opt = document.createElement("option");
+                    opt.value = option.value;
+                    opt.textContent = option.text;
+                    sentimentSelectAdv.appendChild(opt);
+                });
+            }
+
+            sentimentModelSelectAdv.addEventListener("change", updateSentimentOptionsAdv);
+            updateSentimentOptionsAdv();
         });
         // Form submission event handler
         $("form").on("submit", function () {
@@ -772,6 +843,7 @@
         $(window).on("load", function () {
             hideLoading();
         });
+
     </script>
     <footer id="contact-us" class="text-center mt-5 py-4">
         <div class="footer-card">
