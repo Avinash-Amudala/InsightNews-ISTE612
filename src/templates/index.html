@@ -314,6 +314,15 @@
             </div>
         </form>
 
+        <div id="loading-overlay" class="loading-overlay" style="display: none">
+            <div class="loading-spinner">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <div id="loading-progress" class="mt-2">0% Loaded</div>
+            </div>
+        </div>
+        
         <!-- Articles Section -->
         <div id="articles-container" style="{% if action == 'analytics' %}display: none{% endif %}">
             {% if articles %}
