@@ -298,7 +298,7 @@
                 <div class="form-group col-md-1.5">
                     <label for="sentiment">Sentiment:</label>
                     <select class="form-control" id="sentiment" name="sentiment">
-                        <option value="">All</option>
+                        <option value="" {% if sentiment=='' %}selected{% endif %}>All</option>
                         <option value="positive" {% if sentiment=='positive' %}selected{% endif %}>Positive</option>
                         <option value="neutral" {% if sentiment=='neutral' %}selected{% endif %}>Neutral</option>
                         <option value="negative" {% if sentiment=='negative' %}selected{% endif %}>Negative</option>
@@ -618,7 +618,7 @@
                             <div class="form-group col-md-6">
                                 <label for="sentiment-adv">Sentiment:</label>
                                 <select class="form-control" id="sentiment-adv" name="sentiment">
-                                    <option value="">All</option>
+                                    <option value="" {% if sentiment=='' %}selected{% endif %}>All</option>
                                     <option value="positive" {% if sentiment=='positive' %}selected{% endif %}>Positive
                                     </option>
                                     <option value="neutral" {% if sentiment=='neutral' %}selected{% endif %}>Neutral
@@ -857,6 +857,9 @@
                     opt.textContent = option.text;
                     sentimentSelect.appendChild(opt);
                 });
+
+                // Set the previously selected sentiment
+                sentimentSelect.value = "{{ sentiment }}";
             }
 
             function updateSentimentOptionsAdv() {
@@ -870,6 +873,9 @@
                     opt.textContent = option.text;
                     sentimentSelectAdv.appendChild(opt);
                 });
+
+                // Set the previously selected sentiment
+                sentimentSelectAdv.value = "{{ sentiment }}";
             }
 
             sentimentModelSelect.addEventListener("change", updateSentimentOptions);
