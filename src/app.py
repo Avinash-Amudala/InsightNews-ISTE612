@@ -57,17 +57,10 @@ def calculate_page_range(current_page, total_pages, delta=2):
     end_page = min(current_page + delta, total_pages) + 1
     return range(start_page, end_page)
 
-def filter_articles(query, author, title, source, from_date, to_date, sentiment, sentiment_model):
+def filter_articles(query, author, title, source, from_date, to_date, sentiment, sentiment_model, sort_by):
     filtered_articles = articles.copy()
     
-    if query:
-        query_vector = tfidf_vectorizer.transform([query])
-        similarities = cosine_similarity(query_vector, tfidf_matrix).flatten()
-        threshold = 0.1  # Set a threshold for filtering articles
-        filtered_articles = filtered_articles.iloc[similarities > threshold]
-        similarities = similarities[similarities > threshold]
-        filtered_articles = filtered_articles.iloc[similarities.argsort()[::-1]]
-
+    # Apply filters
     if author:
         filtered_articles = filtered_articles[filtered_articles['author'].str.contains(author, case=False, na=False)]
 
@@ -92,7 +85,35 @@ def filter_articles(query, author, title, source, from_date, to_date, sentiment,
     if sentiment:
         filtered_articles = filtered_articles[filtered_articles[sentiment_model].str.lower() == sentiment.lower()]
 
+    # Apply query filter and recompute similarities
+    if query:
+        query_vector = tfidf_vectorizer.transform([query])
+        tfidf_matrix_filtered = tfidf_vectorizer.transform(filtered_articles['content'])
+        similarities = cosine_similarity(query_vector, tfidf_matrix_filtered).flatten()
+        threshold = 0.1  # Set a threshold for filtering articles
+        article_indices = similarities > threshold
+        filtered_articles = filtered_articles.iloc[article_indices]
+        similarities = similarities[article_indices]
+        filtered_articles['relevance'] = similarities
+
+        # Apply relevance sorting if necessary
+        if sort_by == 'relevance_asc':
+            filtered_articles = filtered_articles.sort_values(by='relevance', ascending=True)
+        elif sort_by == 'relevance_desc':
+            filtered_articles = filtered_articles.sort_values(by='relevance', ascending=False)
+    else:
+        # Apply other sorting options
+        if sort_by == 'asc':
+            filtered_articles = filtered_articles.sort_values(by='published_at', ascending=True)
+        elif sort_by == 'desc':
+            filtered_articles = filtered_articles.sort_values(by='published_at', ascending=False)
+        elif sort_by == 'alphabetical_asc':
+            filtered_articles = filtered_articles.sort_values(by='title', ascending=True)
+        elif sort_by == 'alphabetical_desc':
+            filtered_articles = filtered_articles.sort_values(by='title', ascending=False)
+
     return filtered_articles
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -107,6 +128,7 @@ def index():
     to_date = ''
     sentiment = ''
     sentiment_model = 'roberta_sentiment'
+    sort_by = 'desc'
     filtered_articles = pd.DataFrame()
     total = len(articles)
 
@@ -130,8 +152,9 @@ def index():
         to_date = request.form.get('to_date')
         sentiment = request.form.get('sentiment', '')
         sentiment_model = request.form.get('sentiment_model', 'roberta_sentiment')
+        sort_by = request.form.get('sort_by', 'desc')
 
-        filtered_articles = filter_articles(query, author, title, source, from_date, to_date, sentiment, sentiment_model)
+        filtered_articles = filter_articles(query, author, title, source, from_date, to_date, sentiment, sentiment_model, sort_by)
         total = len(filtered_articles)
         
         if filtered_articles.empty:
@@ -222,15 +245,16 @@ def index():
         to_date = request.args.get('to_date', '')
         sentiment = request.args.get('sentiment', '')
         sentiment_model = request.args.get('sentiment_model', 'roberta_sentiment')
+        sort_by = request.args.get('sort_by', 'desc')
 
-        filtered_articles = filter_articles(query, author, title, source, from_date, to_date, sentiment, sentiment_model)
+        filtered_articles = filter_articles(query, author, title, source, from_date, to_date, sentiment, sentiment_model, sort_by)
 
         if filtered_articles.empty:
             flash('No articles found matching your search criteria<br>Please try using Advanced Search', 'danger')
-            return render_template('index.html', articles=[], pagination=None, query=query, author=author, title=title, source=source, from_date=from_date, to_date=to_date, sentiment=sentiment, sentiment_model=sentiment_model, date_min=date_min, date_max=date_max, graph_html=None, bar_chart_html=None, pie_chart_html=None, source_html=None, author_html=None, geo_html=None, length_html=None, topic_html=None, action=action, total=0)
+            return render_template('index.html', articles=[], pagination=None, query=query, author=author, title=title, source=source, from_date=from_date, to_date=to_date, sentiment=sentiment, sentiment_model=sentiment_model, sort_by=sort_by, date_min=date_min, date_max=date_max, graph_html=None, bar_chart_html=None, pie_chart_html=None, source_html=None, author_html=None, geo_html=None, length_html=None, topic_html=None, action=action, total=0)
 
     # Construct cache key including page number
-    cache_key = f"{query or ''}_{author or ''}_{title or ''}_{source or ''}_{from_date or ''}_{to_date or ''}_{sentiment or ''}_{sentiment_model or ''}_{page}"
+    cache_key = f"{query or ''}_{author or ''}_{title or ''}_{source or ''}_{from_date or ''}_{to_date or ''}_{sentiment or ''}_{sentiment_model or ''}_{sort_by}_{page}"
     cached_articles = cache.get(cache_key)
 
     if cached_articles is None:
@@ -258,7 +282,18 @@ def index():
 
     current_articles, pagination = cached_articles
 
-    return render_template('index.html', articles=current_articles, pagination=pagination, query=query, author=author, title=title, source=source, from_date=from_date, to_date=to_date, sentiment=sentiment, sentiment_model=sentiment_model, date_min=date_min, date_max=date_max, graph_html=graph_html, bar_chart_html=bar_chart_html, pie_chart_html=pie_chart_html, source_html=source_html, author_html=author_html, geo_html=geo_html, length_html=length_html, topic_html=topic_html, action=action, total=total)
+    # Update heading logic
+    heading = "News Articles"
+    if query or from_date or to_date:
+        heading = "Searched for "
+        if query:
+            heading += f'"{query}" '
+        if from_date:
+            heading += f'from {from_date} '
+        if to_date:
+            heading += f'to {to_date} '
+
+    return render_template('index.html', articles=current_articles, pagination=pagination, query=query, author=author, title=title, source=source, from_date=from_date, to_date=to_date, sentiment=sentiment, sentiment_model=sentiment_model, sort_by=sort_by, date_min=date_min, date_max=date_max, graph_html=graph_html, bar_chart_html=bar_chart_html, pie_chart_html=pie_chart_html, source_html=source_html, author_html=author_html, geo_html=geo_html, length_html=length_html, topic_html=topic_html, action=action, total=total, heading=heading)
 
 @app.template_filter('dateformat')
 def dateformat(value, format='%B %d, %Y'):

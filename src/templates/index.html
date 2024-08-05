@@ -7,7 +7,7 @@
     <title>InsightNews Sentiment Analysis</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <style>
         body.light-theme {
             background-color: #f8f9fa;
@@ -307,8 +307,7 @@
             </div>
             <div class="form-group col-md-12 d-flex justify-content-center">
                 <button type="submit" name="action" value="search" class="btn btn-primary mr-2">Search Articles</button>
-                <button type="submit" name="action" value="analytics" class="btn btn-info mr-2">Get
-                    Analytics</button>
+                <button type="submit" name="action" value="analytics" class="btn btn-info mr-2">Get Analytics</button>
                 <button type="button" class="btn btn-custom" data-toggle="modal"
                     data-target="#advancedSearchModal">Advanced Search</button>
             </div>
@@ -322,20 +321,15 @@
                 <div id="loading-progress" class="mt-2">0% Loaded</div>
             </div>
         </div>
-        
+
         <!-- Articles Section -->
         <div id="articles-container" style="{% if action == 'analytics' %}display: none{% endif %}">
             {% if articles %}
             <h2 class="my-4">
-                {% if query and from_date and to_date %} Searched for "{{ query }}"
-                from {{ from_date|dateformat }} to {{ to_date|dateformat }} {% elif
-                query and from_date %} Searched for "{{ query }}" from {{
-                from_date|dateformat }} {% elif query and to_date %} Searched for "{{
-                query }}" up to {{ to_date|dateformat }} {% elif from_date and to_date
-                %} Searched from {{ from_date|dateformat }} to {{ to_date|dateformat
-                }} {% elif from_date %} Searched from {{ from_date|dateformat }} {%
-                elif to_date %} Searched up to {{ to_date|dateformat }} {% elif query
-                %} Searched for "{{ query }}" {% else %} Latest News {% endif %}
+                {{ heading }}
+                <button class="btn btn-outline-secondary btn-sm" data-toggle="modal" data-target="#sortModal">
+                    <i class="fas fa-filter"></i>
+                </button>
                 <br>
                 <small class="text-muted">({{ total }} articles found)</small>
             </h2>
@@ -365,14 +359,14 @@
                     {% if pagination.has_prev %}
                     <li class="page-item">
                         <a class="page-link page-nav"
-                            href="{{ url_for('index', page=1, to_date=to_date if to_date else None, from_date=from_date if from_date else None, query=query if query else None, author=author if author else None, title=title if title else None, source=source if source else None, sentiment=sentiment if sentiment else None, sentiment_model=sentiment_model if sentiment_model else None) }}"
+                            href="{{ url_for('index', page=1, to_date=to_date if to_date else None, from_date=from_date if from_date else None, query=query if query else None, author=author if author else None, title=title if title else None, source=source if source else None, sentiment=sentiment if sentiment else None, sentiment_model=sentiment_model if sentiment_model else None, sort_by=sort_by) }}"
                             aria-label="First" title="Go to first page">
                             <span aria-hidden="true">&laquo;&laquo;</span>
                         </a>
                     </li>
                     <li class="page-item">
                         <a class="page-link page-nav"
-                            href="{{ url_for('index', page=pagination.page - 1, to_date=to_date if to_date else None, from_date=from_date if from_date else None, query=query if query else None, author=author if author else None, title=title if title else None, source=source if source else None, sentiment=sentiment if sentiment else None, sentiment_model=sentiment_model if sentiment_model else None) }}"
+                            href="{{ url_for('index', page=pagination.page - 1, to_date=to_date if to_date else None, from_date=from_date if from_date else None, query=query if query else None, author=author if author else None, title=title if title else None, source=source if source else None, sentiment=sentiment if sentiment else None, sentiment_model=sentiment_model if sentiment_model else None, sort_by=sort_by) }}"
                             aria-label="Previous" title="Go to previous page">
                             <span aria-hidden="true">&laquo;</span>
                         </a>
@@ -389,14 +383,14 @@
                     {% if pagination.has_next %}
                     <li class="page-item">
                         <a class="page-link page-nav"
-                            href="{{ url_for('index', page=pagination.page + 1, to_date=to_date if to_date else None, from_date=from_date if from_date else None, query=query if query else None, author=author if author else None, title=title if title else None, source=source if source else None, sentiment=sentiment if sentiment else None, sentiment_model=sentiment_model if sentiment_model else None) }}"
+                            href="{{ url_for('index', page=pagination.page + 1, to_date=to_date if to_date else None, from_date=from_date if from_date else None, query=query if query else None, author=author if author else None, title=title if title else None, source=source if source else None, sentiment=sentiment if sentiment else None, sentiment_model=sentiment_model if sentiment_model else None, sort_by=sort_by) }}"
                             aria-label="Next" title="Go to next page">
                             <span aria-hidden="true">&raquo;</span>
                         </a>
                     </li>
                     <li class="page-item">
                         <a class="page-link page-nav"
-                            href="{{ url_for('index', page=pagination.pages, to_date=to_date if to_date else None, from_date=from_date if from_date else None, query=query if query else None, author=author if author else None, title=title if title else None, source=source if source else None, sentiment=sentiment if sentiment else None, sentiment_model=sentiment_model if sentiment_model else None) }}"
+                            href="{{ url_for('index', page=pagination.pages, to_date=to_date if to_date else None, from_date=from_date if from_date else None, query=query if query else None, author=author if author else None, title=title if title else None, source=source if source else None, sentiment=sentiment if sentiment else None, sentiment_model=sentiment_model if sentiment_model else None, sort_by=sort_by) }}"
                             aria-label="Last" title="Go to last page">
                             <span aria-hidden="true">&raquo;&raquo;</span>
                         </a>
@@ -565,6 +559,46 @@
         <i class="fas fa-moon theme-icon"></i>
     </div>
 
+    <!-- Sort Modal -->
+    <div class="modal fade" id="sortModal" tabindex="-1" role="dialog" aria-labelledby="sortModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content theme">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sortModalLabel">Sort Articles</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+                    <div class="form-group">
+                        <label for="sort_by">Sort By:</label>
+                        <select class="form-control" id="sort_by_modal" name="sort_by_modal">
+                            <option value="desc" {% if sort_by=='desc' %}selected{% endif %}>Newest First</option>
+                            <option value="asc" {% if sort_by=='asc' %}selected{% endif %}>Oldest First</option>
+                            <option value="alphabetical_asc" {% if sort_by=='alphabetical_asc' %}selected{% endif %}>
+                                Alphabetically (A-Z)
+                            </option>
+                            <option value="alphabetical_desc" {% if sort_by=='alphabetical_desc' %}selected{% endif %}>
+                                Alphabetically (Z-A)
+                            </option>
+                            <option value="relevance_desc" {% if sort_by=='relevance_desc' %}selected{% endif %}>
+                                Relevance (High to Low)
+                            </option>
+                            <option value="relevance_asc" {% if sort_by=='relevance_asc' %}selected{% endif %}>
+                                Relevance (Low to High)
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" id="applySort" class="btn btn-primary">Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Advanced Search Modal -->
     <div class="modal fade" id="advancedSearchModal" tabindex="-1" role="dialog"
         aria-labelledby="advancedSearchModalLabel" aria-hidden="true">
@@ -730,9 +764,11 @@
         </div>
     </div>
 
+    <!-- Load scripts at the end of the body to prevent blocking -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script>
         // Show the loading placeholder
         function showLoading() {
@@ -820,23 +856,20 @@
         document.addEventListener("DOMContentLoaded", () => {
             const savedTheme = localStorage.getItem("theme") || "dark";
             applyTheme(savedTheme);
-            document
-                .getElementById("theme-toggle")
-                .addEventListener("change", toggleTheme);
+            document.getElementById("theme-toggle").addEventListener("change", toggleTheme);
+
             // Get the current page from data attribute and set the page input
-            const currentPageElement = document.querySelector(
-                ".pagination .page-item.active"
-            );
+            const currentPageElement = document.querySelector(".pagination .page-item.active");
             if (currentPageElement) {
                 const currentPage = currentPageElement.dataset.currentPage;
                 document.getElementById("page-input").value = currentPage;
             }
+
             // Set dynamic default dates
-            document.getElementById("from_date").value =
-                document.getElementById("from_date").value || "2024-06-01";
-            document.getElementById("to_date").value =
-                document.getElementById("to_date").value || "2024-06-30";
-            //sentiment
+            document.getElementById("from_date").value = document.getElementById("from_date").value || "2024-06-01";
+            document.getElementById("to_date").value = document.getElementById("to_date").value || "2024-06-30";
+
+            // Sentiment Model Selectors and Event Handlers
             const sentimentSelect = document.getElementById("sentiment");
             const sentimentSelectAdv = document.getElementById("sentiment-adv");
             const sentimentModelSelect = document.getElementById("sentiment_model");
@@ -891,32 +924,70 @@
             sentimentModelSelectAdv.addEventListener("change", updateSentimentOptionsAdv);
             updateSentimentOptions();
             updateSentimentOptionsAdv();
-        });
-        // Form submission event handler
-        $("form").on("submit", function () {
-            showLoading();
-            // Allow the form to submit naturally
-        });
-        // Pagination link click event handler
-        $(document).on("click", ".page-nav", function (e) {
-            e.preventDefault();
-            showLoading();
-            window.location.href = $(this).attr("href");
-        });
-        // Update page input change event handler to include max page validation
-        $("#page-input").on("change", function () {
-            let page = $(this).val();
-            let maxPage = parseInt($(this).attr("max"), 10);
-            if (page < 1 || isNaN(page)) page = 1;
-            if (page > maxPage) page = maxPage;
-            showLoading();
-            window.location.href =
-                "{{ url_for('index', query=query if query else None, from_date=from_date if from_date else None, to_date=to_date if to_date else None, author=author if author else None, title=title if title else None, source=source if source else None, sentiment=sentiment if sentiment else None, sentiment_model=sentiment_model if sentiment_model else None) }}?page=" +
-                page;
-        });
-        // Ensure loading placeholder is hidden after page load
-        $(window).on("load", function () {
-            hideLoading();
+
+            // Sort by button click handler
+            document.getElementById("applySort").addEventListener("click", applySort);
+
+            // Function to apply sort
+            function applySort() {
+                const sortBy = document.getElementById("sort_by_modal").value;
+                const url = new URL(window.location.href);
+
+                const params = new URLSearchParams(url.search);
+                params.set("sort_by", sortBy);
+
+                // Get other search parameters from the form
+                const query = document.getElementById("query").value;
+                const author = document.getElementById("author").value;
+                const title = document.getElementById("title").value;
+                const source = document.getElementById("source").value;
+                const from_date = document.getElementById("from_date").value;
+                const to_date = document.getElementById("to_date").value;
+                const sentiment = document.getElementById("sentiment").value;
+                const sentiment_model = document.getElementById("sentiment_model").value;
+
+                if (query) params.set("query", query);
+                if (author) params.set("author", author);
+                if (title) params.set("title", title);
+                if (source) params.set("source", source);
+                if (from_date) params.set("from_date", from_date);
+                if (to_date) params.set("to_date", to_date);
+                if (sentiment) params.set("sentiment", sentiment);
+                if (sentiment_model) params.set("sentiment_model", sentiment_model);
+
+                window.location.href = `${url.pathname}?${params.toString()}`;
+            }
+
+            // Form submission event handler
+            $("form").on("submit", function () {
+                showLoading();
+                // Allow the form to submit naturally
+            });
+
+            // Pagination link click event handler
+            $(document).on("click", ".page-nav", function (e) {
+                e.preventDefault();
+                showLoading();
+                window.location.href = $(this).attr("href");
+            });
+
+            // Update page input change event handler to include max page validation
+            $("#page-input").on("change", function () {
+                let page = $(this).val();
+                let maxPage = parseInt($(this).attr("max"), 10);
+                if (page < 1 || isNaN(page)) page = 1;
+                if (page > maxPage) page = maxPage;
+                showLoading();
+                const url = new URL(window.location.href);
+                const params = new URLSearchParams(url.search);
+                params.set("page", page);
+                window.location.href = `${url.pathname}?${params.toString()}`;
+            });
+
+            // Ensure loading placeholder is hidden after page load
+            $(window).on("load", function () {
+                hideLoading();
+            });
         });
 
     </script>
