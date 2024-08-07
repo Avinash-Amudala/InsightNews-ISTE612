@@ -80,7 +80,7 @@ def filter_articles(query, author, title, source, from_date, to_date, sentiment,
         to_date = pd.to_datetime(to_date, errors='coerce')
         if to_date.tzinfo is None:
             to_date = to_date.tz_localize('UTC')
-        filtered_articles = filtered_articles[filtered_articles['published_at'] <= to_date]
+        filtered_articles = filtered_articles[filtered_articles['published_at'] <= to_date + pd.Timedelta(days=1)]
 
     if sentiment:
         filtered_articles = filtered_articles[filtered_articles[sentiment_model].str.lower() == sentiment.lower()]
