@@ -261,20 +261,22 @@
             <a href="/" style="color: #fff;">InsightNews Sentiment Analysis 📰</a>
         </h1>
         <div class="alert alert-info" role="alert">
-            You can search for articles by keyword, author, title, source, date range, and sentiment model.
-            <a href="#" data-toggle="modal" data-target="#learnMoreModal">Learn More</a>
+            Welcome to InsightNews Sentiment Analysis! Search and analyze news articles to uncover sentiment trends,
+            distribution, and insights from various sources and authors. Utilize advanced search options for a more
+            refined search experience, including regular expression support for keyword, author, title, and source
+            searches. For detailed instructions on how to use the application, click <a href="#" data-toggle="modal"
+                data-target="#learnMoreModal">here</a>.
         </div>
         <div class="alert alert-warning" role="alert">
-            News data is available from {{ date_min }} to {{ date_max }}. If you need more data processed for sentiment
-            analysis, please
-            <a href="#contact-us">Contact Us</a>
+            News data is available from {{ date_min }} to {{ date_max }}. If you require additional data for sentiment
+            analysis, please <a href="#contact-us">contact us</a>.
         </div>
         <form method="POST" action="{{ url_for('index') }}" class="my-4">
             <div class="form-row">
                 <div class="form-group col-md-5">
-                    <label for="query">Search (Topic, Author, Title, Source):</label>
-                    <input type="text" class="form-control" id="query" name="query" placeholder="Search..."
-                        value="{{ query }}" />
+                    <label for="query">Search (supports regex):</label>
+                    <input type="text" class="form-control" id="query" name="query"
+                        placeholder="Search by topic, author, title, or source" value="{{ query }}" />
                 </div>
                 <div class="form-group col-md-2">
                     <label for="from_date">From Date:</label>
@@ -306,8 +308,10 @@
                 </div>
             </div>
             <div class="form-group col-md-12 d-flex justify-content-center">
-                <button type="submit" name="action" value="search" class="btn btn-primary mr-2">Search Articles 🔍</button>
-                <button type="submit" name="action" value="analytics" class="btn btn-info mr-2">Get Analytics 📊</button>
+                <button type="submit" name="action" value="search" class="btn btn-primary mr-2">Search Articles
+                    🔍</button>
+                <button type="submit" name="action" value="analytics" class="btn btn-info mr-2">Get Analytics
+                    📊</button>
                 <button type="button" class="btn btn-custom" data-toggle="modal"
                     data-target="#advancedSearchModal">Advanced Search 🧑‍💻</button>
             </div>
@@ -614,26 +618,26 @@
                     <form method="POST" action="{{ url_for('index') }}">
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label for="query">Keyword:</label>
-                                <input type="text" class="form-control" id="query" name="query" placeholder="Keyword"
-                                    value="{{ query }}">
+                                <label for="query">Keyword (supports regex):</label>
+                                <input type="text" class="form-control" id="query" name="query"
+                                    placeholder="Keyword (supports regex)" value="{{ query }}">
                             </div>
                             <div class="form-group col-md-6">
-                                <label for="author">Author:</label>
-                                <input type="text" class="form-control" id="author" name="author" placeholder="Author"
-                                    value="{{ author }}">
+                                <label for="author">Author (supports regex):</label>
+                                <input type="text" class="form-control" id="author" name="author"
+                                    placeholder="Author (supports regex)" value="{{ author }}">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label for="title">Title:</label>
-                                <input type="text" class="form-control" id="title" name="title" placeholder="Title"
-                                    value="{{ title }}">
+                                <label for="title">Title (supports regex):</label>
+                                <input type="text" class="form-control" id="title" name="title"
+                                    placeholder="Title (supports regex)" value="{{ title }}">
                             </div>
                             <div class="form-group col-md-6">
-                                <label for="source">Source:</label>
-                                <input type="text" class="form-control" id="source" name="source" placeholder="Source"
-                                    value="{{ source }}">
+                                <label for="source">Source (supports regex):</label>
+                                <input type="text" class="form-control" id="source" name="source"
+                                    placeholder="Source (supports regex)" value="{{ source }}">
                             </div>
                         </div>
                         <div class="form-row">
@@ -687,6 +691,7 @@
         </div>
     </div>
 
+
     <!-- Learn More Modal -->
     <div class="modal fade" id="learnMoreModal" tabindex="-1" role="dialog" aria-labelledby="learnMoreModalLabel"
         aria-hidden="true">
@@ -706,7 +711,10 @@
                     <p>Use the following filters to search for articles:</p>
                     <ul>
                         <li><strong>Keyword:</strong> Search for specific words or phrases within the articles to find
-                            relevant content.</li>
+                            relevant content. You can also use regular expressions for more advanced searches. For
+                            example, use
+                            <code>corona|covid</code> to find articles containing either "corona" or "covid".
+                        </li>
                         <li><strong>Date Range:</strong> Select a date range to find articles published within a
                             specific period. You can choose a start date and an end date to narrow down the search
                             results.</li>
@@ -753,11 +761,18 @@
                     <p>For additional search options, use the "Advanced Search" button:</p>
                     <ul>
                         <li><strong>Author:</strong> Find articles written by a specific author. This is useful if you
-                            are looking for content by a particular journalist or writer.</li>
+                            are looking for content by a particular journalist or writer. Regular expressions are
+                            supported. For example, use
+                            <code>John|Jane</code> to find articles written by either "John" or "Jane".
+                        </li>
                         <li><strong>Title:</strong> Search for articles with specific words or phrases in the title.
-                            This helps in finding articles that focus on a particular topic or event.</li>
+                            This helps in finding articles that focus on a particular topic or event. Regular
+                            expressions are supported. For example, use <code>Vaccine|COVID</code> to find articles with
+                            either "Vaccine" or "COVID" in the title.</li>
                         <li><strong>Source:</strong> Filter articles from specific news sources. This is useful if you
-                            prefer articles from certain publications or websites.</li>
+                            prefer articles from certain publications or websites. Regular expressions are supported.
+                            For example, use <code>CNN|BBC</code> to find articles from either "CNN" or "BBC".
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -770,6 +785,13 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script>
+        // Show the "Learn More" modal on the first visit
+        $(document).ready(function () {
+            if (!localStorage.getItem('learnMoreShown')) {
+                $('#learnMoreModal').modal('show');
+                localStorage.setItem('learnMoreShown', 'true');
+            }
+        });
         // Show the loading placeholder
         function showLoading() {
             $("#loading-overlay").fadeIn();

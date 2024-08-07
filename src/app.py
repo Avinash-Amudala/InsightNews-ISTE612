@@ -1,4 +1,5 @@
 import os
+import re
 import pandas as pd
 from flask import Flask, render_template, request, flash
 from flask_caching import Cache
@@ -57,18 +58,19 @@ def calculate_page_range(current_page, total_pages, delta=2):
     end_page = min(current_page + delta, total_pages) + 1
     return range(start_page, end_page)
 
+
 def filter_articles(query, author, title, source, from_date, to_date, sentiment, sentiment_model, sort_by):
     filtered_articles = articles.copy()
     
-    # Apply filters
+    # Apply filters with regex support
     if author:
-        filtered_articles = filtered_articles[filtered_articles['author'].str.contains(author, case=False, na=False)]
+        filtered_articles = filtered_articles[filtered_articles['author'].str.contains(author, case=False, na=False, regex=True)]
 
     if title:
-        filtered_articles = filtered_articles[filtered_articles['title'].str.contains(title, case=False, na=False)]
+        filtered_articles = filtered_articles[filtered_articles['title'].str.contains(title, case=False, na=False, regex=True)]
 
     if source:
-        filtered_articles = filtered_articles[filtered_articles['source'].str.contains(source, case=False, na=False)]
+        filtered_articles = filtered_articles[filtered_articles['source'].str.contains(source, case=False, na=False, regex=True)]
 
     if from_date:
         from_date = pd.to_datetime(from_date, errors='coerce')
@@ -85,10 +87,11 @@ def filter_articles(query, author, title, source, from_date, to_date, sentiment,
     if sentiment:
         filtered_articles = filtered_articles[filtered_articles[sentiment_model].str.lower() == sentiment.lower()]
 
-    # Apply query filter and recompute similarities
+    # Apply query filter with regex support and recompute similarities
     if query:
-        query_vector = tfidf_vectorizer.transform([query])
+        filtered_articles = filtered_articles[filtered_articles['content'].str.contains(query, case=False, na=False, regex=True)]
         tfidf_matrix_filtered = tfidf_vectorizer.transform(filtered_articles['content'])
+        query_vector = tfidf_vectorizer.transform([query])
         similarities = cosine_similarity(query_vector, tfidf_matrix_filtered).flatten()
         threshold = 0.1  # Set a threshold for filtering articles
         article_indices = similarities > threshold
