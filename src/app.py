@@ -96,21 +96,19 @@ def filter_articles(query, author, title, source, from_date, to_date, sentiment,
         similarities = similarities[article_indices]
         filtered_articles['relevance'] = similarities
 
-        # Apply relevance sorting if necessary
-        if sort_by == 'relevance_asc':
-            filtered_articles = filtered_articles.sort_values(by='relevance', ascending=True)
-        elif sort_by == 'relevance_desc':
-            filtered_articles = filtered_articles.sort_values(by='relevance', ascending=False)
-    else:
-        # Apply other sorting options
-        if sort_by == 'asc':
-            filtered_articles = filtered_articles.sort_values(by='published_at', ascending=True)
-        elif sort_by == 'desc':
+        # Sort articles
+        if sort_by == 'desc':
             filtered_articles = filtered_articles.sort_values(by='published_at', ascending=False)
+        elif sort_by == 'asc':
+            filtered_articles = filtered_articles.sort_values(by='published_at', ascending=True)
         elif sort_by == 'alphabetical_asc':
             filtered_articles = filtered_articles.sort_values(by='title', ascending=True)
         elif sort_by == 'alphabetical_desc':
             filtered_articles = filtered_articles.sort_values(by='title', ascending=False)
+        elif sort_by == 'relevance_desc':
+            filtered_articles = filtered_articles.sort_values(by='relevance', ascending=False)
+        elif sort_by == 'relevance_asc':
+            filtered_articles = filtered_articles.sort_values(by='relevance', ascending=True)
 
     return filtered_articles
 
